@@ -1,7 +1,7 @@
+import SocialAuthForm from "@/components/forms/SocialAuthForm";
 import Image from "next/image";
-import "./globals.css";
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -26,7 +26,7 @@ export default function AuthLayout({
         </div>
 
         {children}
-
+        <SocialAuthForm></SocialAuthForm>
       </section>
     </main>
   );

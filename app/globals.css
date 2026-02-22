@@ -1,9 +1,9 @@
 @import "tailwindcss";
+
 @plugin "@tailwindcss/typography";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+
 @theme {
   --color-primary-100: #fff1e6;
   --color-primary-500: #ff7000;
