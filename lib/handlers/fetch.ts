@@ -1,4 +1,4 @@
-import { RequestError } from "@/lib/http-errors";
+import { RequestError } from "../http-errors";
 import handleError from "../error";
 
 interface FetchOptions extends RequestInit {
@@ -14,7 +14,7 @@ export async function fetchHandler<T>(
   options: FetchOptions = {},
 ): Promise<ActionResponse<T>> {
   const {
-    timeout = 100000,
+    timeout = 5000,
     headers: customHeaders = {},
     ...restOptions
   } = options;
