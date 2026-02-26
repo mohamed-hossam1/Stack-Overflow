@@ -1,5 +1,3 @@
-declare module "*.css"
-
 interface Tag {
   _id: string;
   name: string;

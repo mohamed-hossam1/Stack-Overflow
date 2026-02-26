@@ -17,14 +17,21 @@ import {
 import { Input } from "@/components/ui/input";
 import ROUTES from "@/constants/routes";
 import z from "zod";
+import { toast } from "sonner";
 
 type AuthFormProps = {
   schema: any;
   defaultValues: any;
+  onSubmit: (data: any) => Promise<ActionResponse>;
   formType: "SIGN_IN" | "SIGN_UP";
 };
 
-const AuthForm = ({ schema, defaultValues, formType }: AuthFormProps) => {
+const AuthForm = ({
+  schema,
+  defaultValues,
+  formType,
+  onSubmit,
+}: AuthFormProps) => {
   const router = useRouter();
 
   const form = useForm<z.infer<typeof schema>>({
@@ -33,9 +40,23 @@ const AuthForm = ({ schema, defaultValues, formType }: AuthFormProps) => {
   });
 
   async function handleSubmit(data: z.infer<typeof schema>) {
-    console.log(data);
+    const result = (await onSubmit(data)) as ActionResponse;
 
-    router.push(ROUTES.HOME);
+    if (result?.success) {
+      toast("Success", {
+        description:
+          formType === "SIGN_IN"
+            ? "Signed in successfully"
+            : "Signed up successfully",
+      });
+
+      router.push(ROUTES.HOME);
+      router.refresh();
+    } else {
+      toast(`Error ${result?.status}`, {
+        description: result?.error?.message,
+      });
+    }
   }
 
   const buttonText = formType === "SIGN_IN" ? "Sign In" : "Sign Up";

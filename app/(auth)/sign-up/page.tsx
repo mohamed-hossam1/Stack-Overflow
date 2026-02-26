@@ -1,15 +1,20 @@
 "use client";
-import AuthForm from "@/components/forms/AuthForm";
-import { SignUpSchema } from "@/lib/validations";
+
 import React from "react";
 
-export default function page() {
+import AuthForm from "@/components/forms/AuthForm";
+import { SignUpSchema } from "@/lib/validations";
+import { signUpWithCredentials } from "@/lib/actions/auth.action";
+
+const SignUp = () => {
   return (
     <AuthForm
       formType="SIGN_UP"
       schema={SignUpSchema}
       defaultValues={{ email: "", password: "", name: "", username: "" }}
-      // onSubmit={signUpWithCredentials}
+      onSubmit={signUpWithCredentials}
     />
   );
-}
+};
+
+export default SignUp;
