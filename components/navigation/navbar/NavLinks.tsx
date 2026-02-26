@@ -19,7 +19,7 @@ const NavLinks = ({
   const pathname = usePathname();
 
   return (
-    <>
+    <div className="flex flex-1 flex-col gap-2 md:gap-6">
       {sidebarLinks.map((item) => {
         const isActive =
           (pathname.includes(item.route) && item.route.length > 1) ||
@@ -60,14 +60,14 @@ const NavLinks = ({
         );
 
         return isMobileNav ? (
-          <SheetClose asChild key={item.route}>
+          <SheetClose asChild key={item.route} >
             {LinkComponent}
           </SheetClose>
         ) : (
           <React.Fragment key={item.route}>{LinkComponent}</React.Fragment>
         );
       })}
-    </>
+    </div>
   );
 };
 

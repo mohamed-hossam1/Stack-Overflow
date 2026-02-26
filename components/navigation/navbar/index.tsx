@@ -3,11 +3,11 @@ import Link from "next/link";
 
 import { auth } from "@/auth";
 // import GlobalSearch from "@/components/search/GlobalSearch";
-// import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/routes";
 
 import MobileNavigation from "./MobileNavigation";
 import { ModeToggle } from "./Theme";
+import UserAvatar from "@/components/UserAvatar";
 
 const Navbar = async () => {
   const session = await auth();
@@ -31,13 +31,13 @@ const Navbar = async () => {
 
       <div className="flex-between gap-5">
         <ModeToggle />
-        {/* {session?.user?.id && (
+        {session?.user?.id && (
           <UserAvatar
             id={session.user.id}
             name={session.user.name!}
             imageUrl={session.user?.image}
           />
-        )} */}
+        )}
 
         <MobileNavigation />
       </div>

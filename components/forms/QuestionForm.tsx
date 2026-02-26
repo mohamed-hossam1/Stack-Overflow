@@ -2,11 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MDXEditorMethods } from "@mdxeditor/editor";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
-import React, { useRef } from "react";
+import { useRouter } from "next/navigation";
+import React, { useRef, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import ROUTES from "@/constants/routes";
+import { createQuestion } from "@/lib/actions/question.action";
 import { AskQuestionSchema } from "@/lib/validations";
 
 import TagCard from "../cards/TagCard";
@@ -21,13 +25,16 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
+import { toast } from "sonner";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
 
 const QuestionForm = () => {
+  const router = useRouter();
   const editorRef = useRef<MDXEditorMethods>(null);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
@@ -40,7 +47,7 @@ const QuestionForm = () => {
 
   const handleInputKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    field: { value: string[] }
+    field: { value: string[] },
   ) => {
     console.log(field, e);
     if (e.key === "Enter") {
@@ -78,8 +85,24 @@ const QuestionForm = () => {
     }
   };
 
-  const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
-    console.log(data);
+  const handleCreateQuestion = async (
+    data: z.infer<typeof AskQuestionSchema>,
+  ) => {
+    startTransition(async () => {
+      const result = await createQuestion(data);
+
+      if (result.success) {
+        toast("Success", {
+          description: "Question created successfully",
+        });
+
+        if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+      } else {
+        toast(`Error ${result.status}`, {
+          description: result.error?.message || "Something went wrong",
+        });
+      }
+    });
   };
 
   return (
@@ -98,7 +121,7 @@ const QuestionForm = () => {
               </FormLabel>
               <FormControl>
                 <Input
-                  className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-14 border"
+                  className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-[56px] border"
                   {...field}
                 />
               </FormControl>
@@ -145,7 +168,7 @@ const QuestionForm = () => {
               <FormControl>
                 <div>
                   <Input
-                    className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-14 border"
+                    className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-[56px] border"
                     placeholder="Add tags..."
                     onKeyDown={(e) => handleInputKeyDown(e, field)}
                   />
@@ -178,9 +201,17 @@ const QuestionForm = () => {
         <div className="mt-16 flex justify-end">
           <Button
             type="submit"
-            className="primary-gradient w-fit text-light-900!"
+            disabled={isPending}
+            className="primary-gradient w-fit !text-light-900"
           >
-            Ask A Question
+            {isPending ? (
+              <>
+                <ReloadIcon className="mr-2 size-4 animate-spin" />
+                <span>Submitting</span>
+              </>
+            ) : (
+              <>Ask A Question</>
+            )}
           </Button>
         </div>
       </form>
