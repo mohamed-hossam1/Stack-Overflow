@@ -3,7 +3,7 @@
 <div align="center">
   <img src="public/images/site-logo.svg" alt="DevFlow Logo" width="80" />
 
-  <h3>A full-stack Q&A platform for developers, built with Next.js 15</h3>
+  <h3>A full-stack Q&A platform for developers, built with Next.js 16</h3>
 
   <p>
     <a href="https://stack-overflow-dev-theta.vercel.app/" target="_blank">
@@ -71,7 +71,7 @@ The app features AI-powered answer generation via the Groq API, OAuth authentica
 
 | Category | Technology |
 |---|---|
-| Framework | [Next.js 15](https://nextjs.org/) (App Router, Server Actions) |
+| Framework | [Next.js 16](https://nextjs.org/) (App Router, Server Actions) |
 | Language | [TypeScript](https://www.typescriptlang.org/) |
 | Styling | [Tailwind CSS v4](https://tailwindcss.com/), shadcn/ui |
 | Database | [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/) |
@@ -181,21 +181,7 @@ devflow/
 └── types/                  # TypeScript type declarations
 ```
 
----
 
-## 🤝 Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository
-2. Create a new branch: `git checkout -b feature/your-feature-name`
-3. Make your changes and commit: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request
-
-Please make sure your code follows the existing patterns and passes linting.
-
----
 
 ## 📄 License
 
@@ -204,6 +190,6 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 <div align="center">
-  <p>Built with ❤️ using Next.js 15 and deployed on Vercel</p>
+  <p>Built with ❤️ using Next.js 16 and deployed on Vercel</p>
   <a href="https://stack-overflow-dev-theta.vercel.app/">stack-overflow-dev-theta.vercel.app</a>
 </div>
