@@ -21,6 +21,8 @@ import { createAnswer } from "@/lib/actions/answer.action";
 import { api } from "@/lib/api";
 import { AnswerSchema } from "@/lib/validations";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import ROUTES from "@/constants/routes";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
@@ -43,6 +45,8 @@ const AnswerForm = ({
   const [isAISubmitting, setIsAISubmitting] = useState(false);
 
   const editorRef = useRef<MDXEditorMethods>(null);
+  const router = useRouter();
+
 
   const form = useForm<z.infer<typeof AnswerSchema>>({
     resolver: zodResolver(AnswerSchema),
@@ -184,16 +188,28 @@ const AnswerForm = ({
           />
 
           <div className="flex justify-end">
-            <Button type="submit" className="primary-gradient w-fit">
-              {isAnswering ? (
-                <>
-                  <ReloadIcon className="mr-2 size-4 animate-spin" />
-                  Posting...
-                </>
+            <div className="flex justify-end">
+              {session ? (
+                <Button type="submit" className="primary-gradient w-fit">
+                  {isAnswering ? (
+                    <>
+                      <ReloadIcon className="mr-2 size-4 animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    "Post Answer"
+                  )}
+                </Button>
               ) : (
-                "Post Answer"
+                <Button
+                  type="button"
+                  className="primary-gradient w-fit"
+                  onClick={() => router.push(ROUTES.SIGN_IN)}
+                >
+                  Log in to Answer
+                </Button>
               )}
-            </Button>
+            </div>
           </div>
         </form>
       </Form>
