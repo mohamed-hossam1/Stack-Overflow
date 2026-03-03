@@ -2,8 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { cn } from "@/lib/utils";
 import { formUrlQuery } from "@/lib/url";
+import { cn } from "@/lib/utils";
 
 interface Filter {
   name: string;
@@ -12,14 +12,14 @@ interface Filter {
 
 interface Props {
   filters: Filter[];
+  otherClasses?: string;
   containerClasses?: string;
-  itemClasses?: string;
 }
 
-const HomeFilter = ({
+const CommonFilter = ({
   filters,
+  otherClasses = "",
   containerClasses = "",
-  itemClasses = "",
 }: Props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,26 +40,26 @@ const HomeFilter = ({
   return (
     <div
       className={cn(
-        "mt-6 flex flex-wrap gap-3 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pb-1",
+        "flex flex-wrap gap-3 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pb-1",
         containerClasses,
       )}
     >
-      {filters.map((filter) => {
-        const isActive = activeFilter === filter.value;
+      {filters.map((item) => {
+        const isActive = activeFilter === item.value;
 
         return (
           <button
-            key={filter.value}
+            key={item.value}
             type="button"
-            onClick={() => handleUpdateParams(filter.value)}
+            onClick={() => handleUpdateParams(item.value)}
             aria-pressed={isActive}
             className={cn(
               "subtle-medium background-light800_dark300 text-light400_light500 rounded-full px-4 py-2 uppercase transition-colors hover:background-light700_dark400",
               isActive && "background-light700_dark400 text-dark300_light900",
-              itemClasses,
+              otherClasses,
             )}
           >
-            {filter.name}
+            {item.name}
           </button>
         );
       })}
@@ -67,4 +67,4 @@ const HomeFilter = ({
   );
 };
 
-export default HomeFilter;
+export default CommonFilter;

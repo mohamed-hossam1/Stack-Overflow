@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useSession } from "next-auth/react";
 import { use, useState } from "react";
 
 import { createVote } from "@/lib/actions/vote.action";
@@ -25,8 +24,7 @@ const Votes = ({
   targetType,
   session
 }: Params) => {
-  
-  const userId = session.data?.user?.id;
+  const userId = session?.user?.id ?? session?.data?.user?.id;
 
   const { success, data } = use(hasVotedPromise);
 

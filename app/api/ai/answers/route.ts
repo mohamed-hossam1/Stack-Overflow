@@ -23,7 +23,8 @@ export async function POST(req: Request) {
     const system =
       "You are a helpful assistant that provides informative responses in markdown format. " +
       "Use appropriate markdown syntax for headings, lists, code blocks, and emphasis where necessary. " +
-      "For code blocks, use short-form smaller case language identifiers (e.g., 'js', 'py', 'ts', 'html', 'css').";
+      "For code blocks, use short-form smaller case language identifiers (e.g., 'js', 'py', 'ts', 'html', 'css'). " +
+      "Do not use horizontal rules or thematic breaks (avoid '---', '***', '___', or <hr/>).";
     const userPrompt =
       `Generate a markdown-formatted response to the following question: ${question}. ` +
       `Base it on the provided content: ${content}` +

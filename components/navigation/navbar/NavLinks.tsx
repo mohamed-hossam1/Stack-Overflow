@@ -26,13 +26,15 @@ const NavLinks = ({
           pathname === item.route;
 
         if (item.route === "/profile") {
-          if (userId) item.route = `${item.route}/${userId}`;
-          else return null;
+          if (!userId) return null;
         }
+
+        const route =
+          item.route === "/profile" ? `/profile/${userId}` : item.route;
 
         const LinkComponent = (
           <Link
-            href={item.route}
+            href={route}
             key={item.label}
             className={cn(
               isActive
@@ -60,11 +62,11 @@ const NavLinks = ({
         );
 
         return isMobileNav ? (
-          <SheetClose asChild key={item.route} >
+          <SheetClose asChild key={route}>
             {LinkComponent}
           </SheetClose>
         ) : (
-          <React.Fragment key={item.route}>{LinkComponent}</React.Fragment>
+          <React.Fragment key={route}>{LinkComponent}</React.Fragment>
         );
       })}
     </div>

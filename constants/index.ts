@@ -30,11 +30,11 @@ export const sidebarLinks = [
     route: "/tags",
     label: "Tags",
   },
-  {
-    imgURL: "/icons/user.svg",
-    route: "/profile",
-    label: "Profile",
-  },
+  // {
+  //   imgURL: "/icons/user.svg",
+  //   route: "/profile",
+  //   label: "Profile",
+  // },
   {
     imgURL: "/icons/question.svg",
     route: "/ask-question",

@@ -1,13 +1,15 @@
 import Link from "next/link";
 
 import QuestionCard from "@/components/cards/QuestionCard";
-import HomeFilter from "@/components/filters/HomeFilter";
-import LocalSearch from "@/components/search/LocalSearch";
+import DataRenderer from "@/components/DataRenderer";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
-import { getQuestions } from "@/lib/actions/question.action";
-import DataRenderer from "@/components/DataRenderer";
 import { EMPTY_QUESTION } from "@/constants/states";
+import { getQuestions } from "@/lib/actions/question.action";
+import CommonFilter from "@/components/filters/CommonFilter";
+import HomeFilter from "@/components/filters/HomeFilter";
+import LocalSearch from "@/components/search/LocalSearch";
+import { HomePageFilters } from "@/constants/filters";
 
 interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>;
@@ -37,14 +39,19 @@ const Home = async ({ searchParams }: SearchParams) => {
           <Link href={ROUTES.ASK_QUESTION}>Ask a Question</Link>
         </Button>
       </section>
-      <section className="mt-11">
+
+      <section className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearch
           imgSrc="/icons/search.svg"
           placeholder="Search questions..."
           otherClasses="flex-1"
         />
+       
       </section>
-      <HomeFilter />
+       <HomeFilter
+          filters={HomePageFilters}
+          containerClasses="max-sm:hidden min-h-[40px] sm:min-w-[70px] mt-5"
+        />
 
       <DataRenderer
         success={success}

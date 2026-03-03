@@ -76,6 +76,11 @@ const AnswerForm = ({
     });
   };
 
+  const sanitizeMarkdown = (markdown: string) =>
+    markdown
+      .replace(/<hr\s*\/?>/gi, "")
+      .replace(/^\s*([-*_])\s*(?:\1\s*){2,}\s*$/gm, "");
+
   const generateAIAnswer = async () => {
     if (!session) {
       return toast("Please log in", {
@@ -100,7 +105,9 @@ const AnswerForm = ({
         });
       }
 
-      const formattedAnswer = data.replace(/<br>/g, " ").toString().trim();
+      const formattedAnswer = sanitizeMarkdown(
+        data.replace(/<br>/g, " ").toString().trim(),
+      );
 
       if (editorRef.current) {
         editorRef.current.setMarkdown(formattedAnswer);

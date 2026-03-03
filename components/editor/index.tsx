@@ -25,6 +25,7 @@ import {
   ChangeCodeMirrorLanguage,
   Separator,
   InsertThematicBreak,
+  thematicBreakPlugin,
   diffSourcePlugin,
   MDXEditorMethods,
 } from "@mdxeditor/editor";
@@ -60,6 +61,7 @@ const Editor = ({ value, editorRef, fieldChange }: Props) => {
         linkDialogPlugin(),
         quotePlugin(),
         markdownShortcutPlugin(),
+        thematicBreakPlugin(),
         tablePlugin(),
         imagePlugin(),
         codeBlockPlugin({ defaultCodeBlockLanguage: "" }),
