@@ -1,5 +1,5 @@
-import { RequestError } from "../http-errors";
 import handleError from "../error";
+import { RequestError } from "../http-errors";
 
 interface FetchOptions extends RequestInit {
   timeout?: number;
@@ -11,10 +11,10 @@ function isError(error: unknown): error is Error {
 
 export async function fetchHandler<T>(
   url: string,
-  options: FetchOptions = {},
+  options: FetchOptions = {}
 ): Promise<ActionResponse<T>> {
   const {
-    timeout = 5000,
+    timeout = 100000,
     headers: customHeaders = {},
     ...restOptions
   } = options;
@@ -40,12 +40,24 @@ export async function fetchHandler<T>(
     clearTimeout(id);
 
     if (!response.ok) {
-      throw new RequestError(response.status, `HTTP error: ${response.status}`);
+      let message = `HTTP error: ${response.status}`;
+      try {
+        const errorBody = await response.json();
+        message =
+          errorBody?.error?.message ||
+          errorBody?.message ||
+          message;
+      } catch {
+        // Ignore JSON parse errors and keep default message.
+      }
+
+      throw new RequestError(response.status, message);
     }
 
     return await response.json();
   } catch (err) {
     const error = isError(err) ? err : new Error("Unknown error");
+
 
     return handleError(error) as ActionResponse<T>;
   }

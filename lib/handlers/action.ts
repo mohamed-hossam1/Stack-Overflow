@@ -19,9 +19,9 @@ async function action<T>({
   schema,
   authorize = false,
 }: ActionOptions<T>) {
-  if (schema && params) {
+  if (schema) {
     try {
-      schema.parse(params);
+      params = schema.parse(params);
     } catch (error) {
       if (error instanceof ZodError) {
         return new ValidationError(

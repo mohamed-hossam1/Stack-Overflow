@@ -1,7 +1,7 @@
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { AvatarFallback } from "./ui/avatar";
 
 interface Props {
   imgUrl: string;
@@ -12,6 +12,7 @@ interface Props {
   textStyles: string;
   imgStyles?: string;
   isAuthor?: boolean;
+  titleStyles?: string;
 }
 
 const Metric = ({
@@ -23,8 +24,8 @@ const Metric = ({
   textStyles,
   imgStyles,
   isAuthor,
+  titleStyles,
 }: Props) => {
-
   const metricContent = (
     <>
       {imgUrl && (
@@ -37,14 +38,14 @@ const Metric = ({
         />
       )}
 
-      <p
-        className={`${textStyles} flex items-center gap-1 justify-center pt-1`}
-      >
+      <p className={`${textStyles} flex items-center gap-1`}>
         {value}
 
-        <span className={`small-regular  ${isAuthor ? "max-sm:hidden" : ""}`}>
-          {title}
-        </span>
+        {title ? (
+          <span className={cn(`small-regular line-clamp-1`, titleStyles)}>
+            {title}
+          </span>
+        ) : null}
       </p>
     </>
   );

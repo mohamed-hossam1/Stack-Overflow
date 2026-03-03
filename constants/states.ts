@@ -38,6 +38,12 @@ export const EMPTY_TAGS = {
   },
 };
 
+export const EMPTY_ANSWERS = {
+  title: "No Answers Found",
+  message:
+    "The answer board is empty. Make it rain with your brilliant answer.",
+};
+
 export const EMPTY_COLLECTIONS = {
   title: "Collections Are Empty",
   message:
@@ -46,4 +52,9 @@ export const EMPTY_COLLECTIONS = {
     text: "Save to Collection",
     href: ROUTES.COLLECTION,
   },
+};
+
+export const EMPTY_USERS = {
+  title: "No Users Found",
+  message: "You're ALONE. The only one here. More uses are coming soon!",
 };

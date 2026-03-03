@@ -15,16 +15,16 @@ export const sidebarLinks = [
     route: "/community",
     label: "Community",
   },
-  {
-    imgURL: "/icons/star.svg",
-    route: "/collection",
-    label: "Collections",
-  },
-  {
-    imgURL: "/icons/suitcase.svg",
-    route: "/jobs",
-    label: "Find Jobs",
-  },
+  // {
+  //   imgURL: "/icons/star.svg",
+  //   route: "/collection",
+  //   label: "Collections",
+  // },
+  // {
+  //   imgURL: "/icons/suitcase.svg",
+  //   route: "/jobs",
+  //   label: "Find Jobs",
+  // },
   {
     imgURL: "/icons/tag.svg",
     route: "/tags",
