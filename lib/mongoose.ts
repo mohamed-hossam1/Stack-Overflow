@@ -1,7 +1,5 @@
 import mongoose, { Mongoose } from "mongoose";
 
-import "@/database";
-
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
@@ -14,32 +12,25 @@ interface MongooseCache {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
-  var mongoose: MongooseCache;
+  var mongooseCache: MongooseCache | undefined;
 }
 
-let cached = global.mongoose;
+const cached = global.mongooseCache || {
+  conn: null,
+  promise: null,
+};
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+global.mongooseCache = cached;
 
 const dbConnect = async (): Promise<Mongoose> => {
-  if (cached.conn) {
-    return cached.conn;
-  }
+  if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose
-      .connect(MONGODB_URI, {
-        dbName: "devflow",
-      })
-      .then((result) => {
-        return result;
-      })
-      .catch((error) => {
-        throw error;
-      });
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      dbName: "devflow",
+      family: 4,
+      serverSelectionTimeoutMS: 30000,
+    });
   }
 
   cached.conn = await cached.promise;
