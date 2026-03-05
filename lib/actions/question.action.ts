@@ -303,15 +303,15 @@ export async function incrementViews(
   const { questionId } = validationResult.params!;
 
   try {
-    const question = await Question.findById(questionId);
+    const question = await Question.findByIdAndUpdate(
+      questionId,
+      { $inc: { views: 1 } },
+      { new: true },
+    );
 
     if (!question) {
       throw new Error("Question not found");
     }
-
-    question.views += 1;
-
-    await question.save();
 
     return {
       success: true,

@@ -6,7 +6,7 @@ import { User } from "@/database";
 
 import action from "../handlers/action";
 import handleError from "../error";
-import { PaginatedSearchParamsSchema } from "../validations";
+import { GetUserSchema, PaginatedSearchParamsSchema } from "../validations";
 
 export async function getUsers(
   params: PaginatedSearchParams,
@@ -67,6 +67,36 @@ export async function getUsers(
         users: JSON.parse(JSON.stringify(users)),
         isNext,
       },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getUser(
+  params: GetUserParams,
+): Promise<ActionResponse<User>> {
+  const validationResult = await action({
+    params,
+    schema: GetUserSchema,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { userId } = validationResult.params!;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(user)),
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

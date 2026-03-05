@@ -13,7 +13,7 @@ interface Params {
   upvotes: number;
   downvotes: number;
   hasVotedPromise: Promise<ActionResponse<HasVotedResponse>>;
-  session: any;
+  session: AppSession | null;
 }
 
 const Votes = ({
@@ -24,7 +24,7 @@ const Votes = ({
   targetType,
   session
 }: Params) => {
-  const userId = session?.user?.id ?? session?.data?.user?.id;
+  const userId = session?.user?.id;
 
   const { success, data } = use(hasVotedPromise);
 

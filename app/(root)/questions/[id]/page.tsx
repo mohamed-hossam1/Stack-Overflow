@@ -20,7 +20,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
   const { page, pageSize, filter } = await searchParams;
   const { success, data: question } = await getQuestion({ questionId: id });
-  let session = await auth();
+  const session: AppSession | null = await auth() as AppSession | null;
 
   after(async () => {
     await incrementViews({ questionId: id });

@@ -22,7 +22,7 @@ const AnswerCard = async ({
     targetId: _id,
     targetType: "answer",
   });
-  let session = await auth();
+  const session: AppSession | null = await auth() as AppSession | null;
 
   return (
     <article className="light-border border-b py-10">

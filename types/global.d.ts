@@ -123,3 +123,15 @@ interface GlobalSearchedItem {
   type: "question" | "answer" | "user" | "tag";
   title: string;
 }
+
+interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+}
+
+interface AppSession {
+  user: SessionUser;
+  expires: string;
+}

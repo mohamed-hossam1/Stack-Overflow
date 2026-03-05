@@ -32,7 +32,7 @@ interface Props {
   questionId: string;
   questionTitle: string;
   questionContent: string;
-  session: any;
+  session: AppSession | null;
 }
 
 const AnswerForm = ({
