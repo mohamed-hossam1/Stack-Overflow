@@ -20,6 +20,9 @@ const AnswerSchema = new Schema<IAnswer>(
   { timestamps: true }
 );
 
+AnswerSchema.index({ question: 1 });
+AnswerSchema.index({ question: 1, createdAt: -1 });
+
 const Answer = models?.Answer || model<IAnswer>("Answer", AnswerSchema);
 
 export default Answer;

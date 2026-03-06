@@ -26,6 +26,11 @@ const QuestionSchema = new Schema<IQuestion>(
   { timestamps: true }
 );
 
+QuestionSchema.index({ author: 1 });
+QuestionSchema.index({ createdAt: -1 });
+QuestionSchema.index({ upvotes: -1 });
+QuestionSchema.index({ title: "text", content: "text" });
+
 const Question =
   models?.Question || model<IQuestion>("Question", QuestionSchema);
 

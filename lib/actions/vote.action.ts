@@ -1,9 +1,7 @@
 "use server";
 
 import mongoose, { ClientSession } from "mongoose";
-import { revalidatePath } from "next/cache";
 
-import ROUTES from "@/constants/routes";
 import { Answer, Question, Vote } from "@/database";
 
 import action from "../handlers/action";
@@ -52,7 +50,7 @@ export async function updateVoteCount(
 
 export async function createVote(
   params: CreateVoteParams
-): Promise<ActionResponse> {
+): Promise<ActionResponse<VoteState>> {
   const validationResult = await action({
     params,
     schema: CreateVoteSchema,
@@ -78,6 +76,8 @@ export async function createVote(
       actionType: targetType,
     }).session(session);
 
+    let finalVoteType: "upvote" | "downvote" | null = null;
+
     if (existingVote) {
       if (existingVote.voteType === voteType) {
         await Vote.deleteOne({ _id: existingVote._id }).session(session);
@@ -85,6 +85,7 @@ export async function createVote(
           { targetId, targetType, voteType, change: -1 },
           session
         );
+        finalVoteType = null;
       } else {
         await Vote.findByIdAndUpdate(
           existingVote._id,
@@ -99,6 +100,7 @@ export async function createVote(
           { targetId, targetType, voteType, change: 1 },
           session
         );
+        finalVoteType = voteType;
       }
     } else {
       await Vote.create(
@@ -110,26 +112,34 @@ export async function createVote(
             voteType,
           },
         ],
-        {
-          session,
-        }
+        { session }
       );
       await updateVoteCount(
         { targetId, targetType, voteType, change: 1 },
         session
       );
+      finalVoteType = voteType;
     }
 
     await session.commitTransaction();
-    session.endSession();
 
-    revalidatePath(ROUTES.QUESTION(targetId));
+    const Model = targetType === "question" ? Question : Answer;
+    const updatedDoc = await Model.findById(targetId);
 
-    return { success: true };
+    return {
+      success: true,
+      data: {
+        upvotes: updatedDoc.upvotes,
+        downvotes: updatedDoc.downvotes,
+        hasUpvoted: finalVoteType === "upvote",
+        hasDownvoted: finalVoteType === "downvote",
+      },
+    };
   } catch (error) {
     await session.abortTransaction();
-    session.endSession();
     return handleError(error) as ErrorResponse;
+  } finally {
+    await session.endSession();
   }
 }
 

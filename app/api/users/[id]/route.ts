@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { auth } from "@/auth";
 import User from "@/database/user.model";
 import handleError from "@/lib/error";
 import { NotFoundError, ValidationError } from "@/lib/http-errors";
@@ -29,6 +30,14 @@ export async function DELETE(
   _: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { success: false, error: { message: "Unauthorized" } },
+      { status: 401 },
+    );
+  }
+
   const { id } = await params;
   if (!id) throw new NotFoundError("User");
 
@@ -48,6 +57,14 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { success: false, error: { message: "Unauthorized" } },
+      { status: 401 },
+    );
+  }
+
   const { id } = await params;
   if (!id) throw new NotFoundError("User");
 

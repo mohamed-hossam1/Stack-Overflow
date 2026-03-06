@@ -18,6 +18,8 @@ const VoteSchema = new Schema<IVote>(
   { timestamps: true }
 );
 
+VoteSchema.index({ author: 1, actionId: 1, actionType: 1 }, { unique: true });
+
 const Vote = models?.Vote || model<IVote>("Vote", VoteSchema);
 
 export default Vote;

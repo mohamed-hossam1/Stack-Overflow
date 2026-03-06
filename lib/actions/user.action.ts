@@ -57,7 +57,8 @@ export async function getUsers(
     const users = await User.find(filterQuery)
       .sort(sortCriteria)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const isNext = totalUsers > skip + users.length;
 
@@ -88,7 +89,7 @@ export async function getUser(
   const { userId } = validationResult.params!;
 
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).lean();
 
     if (!user) {
       throw new Error("User not found");

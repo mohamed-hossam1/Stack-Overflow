@@ -59,7 +59,8 @@ export const getTags = async (
     const tags = await Tag.find(filterQuery)
       .sort(sortCriteria)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const isNext = totalTags > skip + tags.length;
 
@@ -115,7 +116,8 @@ export const getTagQuestions = async (
         { path: "tags", select: "name" },
       ])
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const isNext = totalQuestions > skip + questions.length;
 

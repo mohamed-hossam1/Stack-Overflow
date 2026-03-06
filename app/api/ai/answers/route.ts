@@ -1,10 +1,28 @@
 import { NextResponse } from "next/server";
 
+import { auth } from "@/auth";
 import handleError from "@/lib/error";
 import { ValidationError } from "@/lib/http-errors";
+import { rateLimit } from "@/lib/rate-limit";
 import { AIAnswerSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { success: false, error: { message: "Unauthorized" } },
+      { status: 401 },
+    );
+  }
+
+  const { allowed } = rateLimit(session.user.id);
+  if (!allowed) {
+    return NextResponse.json(
+      { success: false, error: { message: "Too many requests" } },
+      { status: 429 },
+    );
+  }
+
   const { question, content, userAnswer } = await req.json();
 
   try {

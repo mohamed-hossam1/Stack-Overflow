@@ -206,7 +206,8 @@ export async function getQuestion(
   try {
     const question = await Question.findById(questionId)
       .populate("tags")
-      .populate("author", "_id name image");
+      .populate("author", "_id name image")
+      .lean();
 
     if (!question) {
       throw new Error("Question not found");
@@ -242,10 +243,7 @@ export async function getQuestions(
   }
 
   if (query) {
-    filterQuery.$or = [
-      { title: { $regex: new RegExp(query, "i") } },
-      { content: { $regex: new RegExp(query, "i") } },
-    ];
+    filterQuery.$text = { $search: query };
   }
 
   let sortCriteria = {};
@@ -267,15 +265,31 @@ export async function getQuestions(
   }
 
   try {
-    const totalQuestions = await Question.countDocuments(filterQuery);
+    let totalQuestions = await Question.countDocuments(filterQuery);
 
-    const questions = await Question.find(filterQuery)
+    let questions = await Question.find(filterQuery)
       .populate("tags", "name")
       .populate("author", "name image")
       .lean()
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit);
+
+    if (query && questions.length === 0) {
+      delete filterQuery.$text;
+      filterQuery.$or = [
+        { title: { $regex: new RegExp(query, "i") } },
+        { content: { $regex: new RegExp(query, "i") } },
+      ];
+      totalQuestions = await Question.countDocuments(filterQuery);
+      questions = await Question.find(filterQuery)
+        .populate("tags", "name")
+        .populate("author", "name image")
+        .lean()
+        .sort(sortCriteria)
+        .skip(skip)
+        .limit(limit);
+    }
 
     const isNext = totalQuestions > skip + questions.length;
 

@@ -112,7 +112,8 @@ export async function getAnswers(params: GetAnswersParams): Promise<
       .populate("author", "_id name image")
       .sort(sortCriteria)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const isNext = totalAnswers > skip + answers.length;
 

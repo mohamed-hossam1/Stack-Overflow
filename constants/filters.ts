@@ -4,6 +4,9 @@ export const HomePageFilters = [
   { name: "Unanswered", value: "unanswered" },
 ];
 
+/** Answer filter options consumed by `getAnswers` in `lib/actions/answer.action.ts`.
+ * Maps to sortCriteria switch cases: "latest" → { createdAt: -1 }, "oldest" → { createdAt: 1 }, "popular" → { upvotes: -1 }.
+ * Keep in sync if adding new sort modes. */
 export const AnswerFilters = [
   { name: "Newest", value: "latest" },
   { name: "Oldest", value: "oldest" },

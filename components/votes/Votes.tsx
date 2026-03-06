@@ -17,26 +17,65 @@ interface Params {
 }
 
 const Votes = ({
-  upvotes,
-  downvotes,
+  upvotes: initialUpvotes,
+  downvotes: initialDownvotes,
   hasVotedPromise,
   targetId,
   targetType,
-  session
+  session,
 }: Params) => {
   const userId = session?.user?.id;
 
   const { success, data } = use(hasVotedPromise);
 
+  const [localUpvotes, setLocalUpvotes] = useState(initialUpvotes);
+  const [localDownvotes, setLocalDownvotes] = useState(initialDownvotes);
+  const [localHasUpvoted, setLocalHasUpvoted] = useState(
+    data?.hasUpvoted ?? false
+  );
+  const [localHasDownvoted, setLocalHasDownvoted] = useState(
+    data?.hasDownvoted ?? false
+  );
   const [isLoading, setIsLoading] = useState(false);
-
-  const { hasUpvoted, hasDownvoted } = data || {};
 
   const handleVote = async (voteType: "upvote" | "downvote") => {
     if (!userId)
-      return toast("Please login to vote",{
+      return toast("Please login to vote", {
         description: "Only logged-in users can vote.",
       });
+
+    const snapshot = {
+      upvotes: localUpvotes,
+      downvotes: localDownvotes,
+      hasUpvoted: localHasUpvoted,
+      hasDownvoted: localHasDownvoted,
+    };
+
+    if (voteType === "upvote") {
+      if (localHasUpvoted) {
+        setLocalUpvotes((v) => v - 1);
+        setLocalHasUpvoted(false);
+      } else {
+        setLocalUpvotes((v) => v + 1);
+        setLocalHasUpvoted(true);
+        if (localHasDownvoted) {
+          setLocalDownvotes((v) => v - 1);
+          setLocalHasDownvoted(false);
+        }
+      }
+    } else {
+      if (localHasDownvoted) {
+        setLocalDownvotes((v) => v - 1);
+        setLocalHasDownvoted(false);
+      } else {
+        setLocalDownvotes((v) => v + 1);
+        setLocalHasDownvoted(true);
+        if (localHasUpvoted) {
+          setLocalUpvotes((v) => v - 1);
+          setLocalHasUpvoted(false);
+        }
+      }
+    }
 
     setIsLoading(true);
 
@@ -48,22 +87,31 @@ const Votes = ({
       });
 
       if (!result.success) {
-        return toast("Failed to vote",{
+        setLocalUpvotes(snapshot.upvotes);
+        setLocalDownvotes(snapshot.downvotes);
+        setLocalHasUpvoted(snapshot.hasUpvoted);
+        setLocalHasDownvoted(snapshot.hasDownvoted);
+
+        return toast("Failed to vote", {
           description: result.error?.message,
         });
       }
 
-      const successMessage =
-        voteType === "upvote"
-          ? `Upvote ${!hasUpvoted ? "added" : "removed"} successfully`
-          : `Downvote ${!hasDownvoted ? "added" : "removed"} successfully`;
-
-      toast(successMessage,{
-        description: "Your vote has been recorded.",
-      });
+      if (result.data) {
+        setLocalUpvotes(result.data.upvotes);
+        setLocalDownvotes(result.data.downvotes);
+        setLocalHasUpvoted(result.data.hasUpvoted);
+        setLocalHasDownvoted(result.data.hasDownvoted);
+      }
     } catch {
-      toast( "Failed to vote",{
-        description: "An error occurred while voting. Please try again later.",
+      setLocalUpvotes(snapshot.upvotes);
+      setLocalDownvotes(snapshot.downvotes);
+      setLocalHasUpvoted(snapshot.hasUpvoted);
+      setLocalHasDownvoted(snapshot.hasDownvoted);
+
+      toast("Failed to vote", {
+        description:
+          "An error occurred while voting. Please try again later.",
       });
     } finally {
       setIsLoading(false);
@@ -75,7 +123,9 @@ const Votes = ({
       <div className="flex-center gap-1.5">
         <Image
           src={
-            success && hasUpvoted ? "/icons/upvoted.svg" : "/icons/upvote.svg"
+            success && localHasUpvoted
+              ? "/icons/upvoted.svg"
+              : "/icons/upvote.svg"
           }
           width={18}
           height={18}
@@ -87,7 +137,7 @@ const Votes = ({
 
         <div className="flex-center background-light700_dark400 min-w-5 rounded-sm p-1">
           <p className="subtle-medium text-dark400_light900">
-            {formatNumber(upvotes)}
+            {formatNumber(localUpvotes)}
           </p>
         </div>
       </div>
@@ -95,7 +145,7 @@ const Votes = ({
       <div className="flex-center gap-1.5">
         <Image
           src={
-            success && hasDownvoted
+            success && localHasDownvoted
               ? "/icons/downvoted.svg"
               : "/icons/downvote.svg"
           }
@@ -109,7 +159,7 @@ const Votes = ({
 
         <div className="flex-center background-light700_dark400 min-w-5 rounded-sm p-1">
           <p className="subtle-medium text-dark400_light900">
-            {formatNumber(downvotes)}
+            {formatNumber(localDownvotes)}
           </p>
         </div>
       </div>

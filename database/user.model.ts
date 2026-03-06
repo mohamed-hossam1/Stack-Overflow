@@ -28,6 +28,8 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
+UserSchema.index({ reputation: -1 });
+
 const User = models?.User || model<IUser>("User", UserSchema);
 
 export default User;

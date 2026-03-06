@@ -92,6 +92,13 @@ interface User {
   createdAt: Date;
 }
 
+interface VoteState {
+  upvotes: number;
+  downvotes: number;
+  hasUpvoted: boolean;
+  hasDownvoted: boolean;
+}
+
 interface Badges {
   GOLD: number;
   SILVER: number;
