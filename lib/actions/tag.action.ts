@@ -1,13 +1,15 @@
 "use server";
 
 import { FilterQuery } from "mongoose";
+import { unstable_cache } from "next/cache";
 import action from "../handlers/action";
 import handleError from "../error";
 import {
   GetTagQuestionsSchema,
+  GetUserTagsSchema,
   PaginatedSearchParamsSchema,
 } from "../validations";
-import { Question, Tag } from "@/database";
+import { Question, Tag, TagQuestion } from "@/database";
 import dbConnect from "../mongoose";
 
 export const getTags = async (
@@ -134,16 +136,75 @@ export const getTagQuestions = async (
   }
 };
 
-export const getTopTags = async (): Promise<ActionResponse<Tag[]>> => {
-  try {
-    await dbConnect();
+export const getUserTopTags = async (
+  params: GetUserTagsParams
+): Promise<ActionResponse<Tag[]>> => {
+  const validationResult = await action({
+    params,
+    schema: GetUserTagsSchema,
+  });
 
-    const tags = await Tag.find().sort({ questions: -1 }).limit(5);
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { userId } = validationResult.params!;
+
+  try {
+    const userQuestions = await Question.find({ author: userId }).select("_id");
+    const questionIds = userQuestions.map((q) => q._id);
+
+    const tagCounts = await TagQuestion.aggregate([
+      { $match: { question: { $in: questionIds } } },
+      { $group: { _id: "$tag", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "_id",
+          foreignField: "_id",
+          as: "tag",
+        },
+      },
+      { $unwind: "$tag" },
+      {
+        $project: {
+          _id: "$tag._id",
+          name: "$tag.name",
+          questions: "$count",
+        },
+      },
+    ]);
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(tags)),
+      data: JSON.parse(JSON.stringify(tagCounts)),
     };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+};
+
+const getTopTagsCached = unstable_cache(
+  async () => {
+    await dbConnect();
+
+    const tags = await Tag.find()
+      .sort({ questions: -1 })
+      .limit(5)
+      .lean();
+
+    return JSON.parse(JSON.stringify(tags));
+  },
+  ["top-tags"],
+  { revalidate: 300, tags: ["top-tags"] }
+);
+
+export const getTopTags = async (): Promise<ActionResponse<Tag[]>> => {
+  try {
+    const data = await getTopTagsCached();
+    return { success: true, data };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }

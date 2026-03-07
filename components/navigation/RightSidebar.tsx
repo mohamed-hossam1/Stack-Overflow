@@ -8,12 +8,16 @@ import DataRenderer from "../DataRenderer";
 import { getTopTags } from "@/lib/actions/tag.action";
 
 const RightSidebar = async () => {
-  const { success, data: hotQuestions, error } = await getHotQuestions();
+  const [hotQuestionsResult, topTagsResult] = await Promise.all([
+    getHotQuestions(),
+    getTopTags(),
+  ]);
+  const { success, data: hotQuestions, error } = hotQuestionsResult;
   const {
     success: tagSuccess,
     data: tags,
     error: tagError,
-  } = await getTopTags();
+  } = topTagsResult;
 
   return (
     <section className="pt-36 custom-scrollbar background-light900_dark200 light-border sticky right-0 top-0 flex h-screen w-[350px] flex-col gap-6 overflow-y-auto border-l p-6 shadow-light-300 dark:shadow-none max-xl:hidden">

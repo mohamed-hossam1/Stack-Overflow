@@ -3,16 +3,24 @@ import React from "react";
 
 import ROUTES from "@/constants/routes";
 import { getTimeStamp } from "@/lib/utils";
+import { toggleCollection } from "@/lib/actions/collection.action";
+import { deleteQuestion } from "@/lib/actions/question.action";
 
 import TagCard from "./TagCard";
 import Metric from "../Metric";
+import BookmarkButton from "../bookmarks/BookmarkButton";
+import DeleteButton from "../DeleteButton";
 
 interface Props {
   question: Question;
+  saved?: boolean;
+  session?: AppSession | null;
 }
 
 const QuestionCard = ({
   question: { _id, title, tags, author, createdAt, upvotes, answers, views },
+  saved,
+  session,
 }: Props) => {
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
@@ -27,6 +35,19 @@ const QuestionCard = ({
               {title}
             </h3>
           </Link>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {session?.user && (
+            <BookmarkButton
+              questionId={_id}
+              saved={saved ?? false}
+              toggleAction={toggleCollection}
+            />
+          )}
+          {session?.user?.id === author._id && (
+            <DeleteButton itemId={_id} deleteAction={deleteQuestion} />
+          )}
         </div>
       </div>
 

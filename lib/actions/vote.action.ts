@@ -2,6 +2,8 @@
 
 import mongoose, { ClientSession } from "mongoose";
 
+import { revalidateTag } from "next/cache";
+
 import { Answer, Question, Vote } from "@/database";
 
 import action from "../handlers/action";
@@ -11,6 +13,7 @@ import {
   HasVotedSchema,
   UpdateVoteCountSchema,
 } from "../validations";
+import { updateReputation } from "./reputation.action";
 
 export async function updateVoteCount(
   params: UpdateVoteCountParams,
@@ -85,6 +88,10 @@ export async function createVote(
           { targetId, targetType, voteType, change: -1 },
           session
         );
+        await updateReputation(
+          { targetId, targetType, voteType, change: -1 },
+          session
+        );
         finalVoteType = null;
       } else {
         await Vote.findByIdAndUpdate(
@@ -96,7 +103,15 @@ export async function createVote(
           { targetId, targetType, voteType: existingVote.voteType, change: -1 },
           session
         );
+        await updateReputation(
+          { targetId, targetType, voteType: existingVote.voteType, change: -1 },
+          session
+        );
         await updateVoteCount(
+          { targetId, targetType, voteType, change: 1 },
+          session
+        );
+        await updateReputation(
           { targetId, targetType, voteType, change: 1 },
           session
         );
@@ -118,10 +133,16 @@ export async function createVote(
         { targetId, targetType, voteType, change: 1 },
         session
       );
+      await updateReputation(
+        { targetId, targetType, voteType, change: 1 },
+        session
+      );
       finalVoteType = voteType;
     }
 
     await session.commitTransaction();
+
+    revalidateTag("hot-questions");
 
     const Model = targetType === "question" ? Question : Answer;
     const updatedDoc = await Model.findById(targetId);

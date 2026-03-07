@@ -48,7 +48,7 @@ const LocalSearch = ({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, searchParams]);
+  }, [searchQuery]);
 
   return (
     <div

@@ -1,4 +1,4 @@
 <!-- SPECKIT START -->
-Active plan: `specs/004-missing-features/plan.md`
-Phase 4 — Missing Features: **in-progress**
+Active plan: `specs/001-seo-a11y-ux/plan.md`
+Phase 6 — SEO, Accessibility & UX: **planning**
 <!-- SPECKIT END -->

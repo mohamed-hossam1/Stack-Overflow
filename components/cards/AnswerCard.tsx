@@ -2,12 +2,14 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import ROUTES from "@/constants/routes";
+import { deleteAnswer } from "@/lib/actions/answer.action";
 import { hasVoted } from "@/lib/actions/vote.action";
 import { getTimeStamp } from "@/lib/utils";
 
 import { Preview } from "../editor/Preview";
 import UserAvatar from "../UserAvatar";
 import Votes from "../votes/Votes";
+import DeleteButton from "../DeleteButton";
 import { auth } from "@/auth";
 
 const AnswerCard = async ({
@@ -67,6 +69,12 @@ const AnswerCard = async ({
       </div>
 
       <Preview content={content} />
+
+      {session?.user?.id === author._id && (
+        <div className="mt-4 flex justify-end">
+          <DeleteButton itemId={_id} paramKey="answerId" deleteAction={deleteAnswer} />
+        </div>
+      )}
     </article>
   );
 };

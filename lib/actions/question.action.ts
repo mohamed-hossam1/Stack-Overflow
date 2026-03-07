@@ -2,16 +2,23 @@
 
 import mongoose, { Error, FilterQuery } from "mongoose";
 
+import Answer from "@/database/answer.model";
+import Collection from "@/database/collection.model";
 import Question, { IQuestionDoc } from "@/database/question.model";
 import TagQuestion from "@/database/tag-question.model";
 import Tag, { ITagDoc } from "@/database/tag.model";
+import Vote from "@/database/vote.model";
+
+import { revalidateTag, unstable_cache } from "next/cache";
 
 import action from "../handlers/action";
 import handleError from "../error";
 import {
   AskQuestionSchema,
+  DeleteQuestionSchema,
   EditQuestionSchema,
   GetQuestionSchema,
+  GetUserQuestionsSchema,
   IncrementViewsSchema,
   PaginatedSearchParamsSchema,
 } from "../validations";
@@ -72,6 +79,9 @@ export async function createQuestion(
     );
 
     await session.commitTransaction();
+
+    revalidateTag("hot-questions");
+    revalidateTag("top-tags");
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
@@ -336,18 +346,126 @@ export async function incrementViews(
   }
 }
 
-export async function getHotQuestions(): Promise<ActionResponse<Question[]>> {
+export async function getUserQuestions(
+  params: GetUserQuestionsParams
+): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: GetUserQuestionsSchema,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { userId, page = 1, pageSize = 10 } = validationResult.params!;
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = Number(pageSize);
+
   try {
+    const totalQuestions = await Question.countDocuments({ author: userId });
+
+    const questions = await Question.find({ author: userId })
+      .populate("tags", "name")
+      .populate("author", "name image")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const isNext = totalQuestions > skip + questions.length;
+
+    return {
+      success: true,
+      data: {
+        questions: JSON.parse(JSON.stringify(questions)),
+        isNext,
+      },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function deleteQuestion(
+  params: DeleteQuestionParams
+): Promise<ActionResponse> {
+  const validationResult = await action({
+    params,
+    schema: DeleteQuestionSchema,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { questionId } = validationResult.params!;
+  const userId = validationResult.session?.user?.id;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const question = await Question.findById(questionId).session(session);
+
+    if (!question) {
+      throw new Error("Question not found");
+    }
+
+    if (question.author.toString() !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const answerIds = await Answer.find({ question: questionId }).distinct("_id");
+
+    await Vote.deleteMany({ actionId: { $in: [questionId, ...answerIds] } }).session(session);
+
+    await Answer.deleteMany({ question: questionId }).session(session);
+
+    const tagIds = question.tags;
+    await TagQuestion.deleteMany({ question: questionId }).session(session);
+
+    await Tag.updateMany(
+      { _id: { $in: tagIds } },
+      { $inc: { questions: -1 } },
+      { session }
+    );
+
+    await Collection.deleteMany({ question: questionId }).session(session);
+
+    await Question.findByIdAndDelete(questionId).session(session);
+
+    await session.commitTransaction();
+
+    return { success: true };
+  } catch (error) {
+    await session.abortTransaction();
+    return handleError(error) as ErrorResponse;
+  } finally {
+    session.endSession();
+  }
+}
+
+const getHotQuestionsCached = unstable_cache(
+  async () => {
     await dbConnect();
 
     const questions = await Question.find()
       .sort({ views: -1, upvotes: -1 })
-      .limit(5);
+      .limit(5)
+      .lean();
 
-    return {
-      success: true,
-      data: JSON.parse(JSON.stringify(questions)),
-    };
+    return JSON.parse(JSON.stringify(questions));
+  },
+  ["hot-questions"],
+  { revalidate: 300, tags: ["hot-questions"] }
+);
+
+export async function getHotQuestions(): Promise<ActionResponse<Question[]>> {
+  try {
+    const data = await getHotQuestionsCached();
+    return { success: true, data };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }

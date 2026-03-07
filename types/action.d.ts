@@ -128,11 +128,11 @@ interface JobFilterParams {
 }
 
 interface UpdateUserParams {
-  name?: string;
-  username?: string;
-  email?: string;
-  image?: string;
-  password?: string;
+  name: string;
+  username: string;
+  bio: string;
+  location: string;
+  portfolio: string;
 }
 
 interface GlobalSearchParams {

@@ -10,10 +10,11 @@ import Metric from "@/components/Metric";
 import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/routes";
 import { getAnswers } from "@/lib/actions/answer.action";
-import { getQuestion, incrementViews } from "@/lib/actions/question.action";
+import { deleteQuestion, getQuestion, incrementViews } from "@/lib/actions/question.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 import { auth } from "@/auth";
 import { hasVoted } from "@/lib/actions/vote.action";
+import DeleteButton from "@/components/DeleteButton";
 import Votes from "@/components/votes/Votes";
 
 const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
@@ -63,7 +64,14 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
             </Link>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-2">
+            {session?.user?.id === author._id && (
+              <DeleteButton
+                itemId={question._id}
+                deleteAction={deleteQuestion}
+              />
+            )}
+
             <Suspense fallback={<div>Loading...</div>}>
               <Votes
                 targetType="question"

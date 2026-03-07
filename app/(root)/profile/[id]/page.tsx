@@ -3,15 +3,26 @@ import { redirect } from "next/navigation";
 import React from "react";
 
 import { auth } from "@/auth";
-import UserAvatar from "@/components/UserAvatar";
+import QuestionCard from "@/components/cards/QuestionCard";
+import DataRenderer from "@/components/DataRenderer";
 import Metric from "@/components/Metric";
+import Pagination from "@/components/Pagination";
+import TagCard from "@/components/cards/TagCard";
+import UserAvatar from "@/components/UserAvatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EMPTY_ANSWERS, EMPTY_QUESTION } from "@/constants/states";
+import { getUserAnswers } from "@/lib/actions/answer.action";
+import { getUserQuestions } from "@/lib/actions/question.action";
+import { getUserTopTags } from "@/lib/actions/tag.action";
 import { getUser } from "@/lib/actions/user.action";
 import { getTimeStamp } from "@/lib/utils";
 
-const ProfilePage = async ({ params }: RouteParams) => {
+const ProfilePage = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;
+  const { page, pageSize } = await searchParams;
+
   const { success, data: user } = await getUser({ userId: id });
-  const session = await auth();
+  const session: AppSession | null = await auth() as AppSession | null;
 
   if (!success || !user) return redirect("/404");
 
@@ -28,6 +39,22 @@ const ProfilePage = async ({ params }: RouteParams) => {
   } = user;
 
   const isOwner = session?.user?.id === _id;
+
+  const { success: qSuccess, data: qData } = await getUserQuestions({
+    userId: id,
+    page: Number(page) || 1,
+    pageSize: Number(pageSize) || 10,
+  });
+
+  const { success: aSuccess, data: aData } = await getUserAnswers({
+    userId: id,
+    page: Number(page) || 1,
+    pageSize: Number(pageSize) || 10,
+  });
+
+  const { success: tSuccess, data: tData } = await getUserTopTags({
+    userId: id,
+  });
 
   return (
     <div className="flex-start w-full flex-col">
@@ -48,9 +75,7 @@ const ProfilePage = async ({ params }: RouteParams) => {
             </p>
 
             {bio && (
-              <p className="body-regular text-dark400_light800 mt-2">
-                {bio}
-              </p>
+              <p className="body-regular text-dark400_light800 mt-2">{bio}</p>
             )}
 
             {location && (
@@ -90,11 +115,97 @@ const ProfilePage = async ({ params }: RouteParams) => {
         </div>
 
         {isOwner && (
-          <div className="primary-gradient btn mb-4 mt-4 h-10 rounded-lg px-6 py-2 text-light-900">
+          <Link
+            href={`/profile/${_id}/edit`}
+            className="primary-gradient btn mb-4 mt-4 h-10 rounded-lg px-6 py-2 text-light-900"
+          >
             Edit Profile
-          </div>
+          </Link>
         )}
       </div>
+
+      <section className="mt-10 w-full">
+        <Tabs defaultValue="questions">
+          <TabsList className="background-light800_dark400 min-h-[42px] p-1">
+            <TabsTrigger value="questions" className="tab">
+              Questions
+            </TabsTrigger>
+            <TabsTrigger value="answers" className="tab">
+              Answers
+            </TabsTrigger>
+            <TabsTrigger value="tags" className="tab">
+              Top Tags
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="questions" className="mt-5 w-full">
+            <DataRenderer
+              success={qSuccess}
+              data={qData?.questions}
+              empty={EMPTY_QUESTION}
+              render={(questions) => (
+                <div className="flex w-full flex-col gap-6">
+                  {questions.map((q) => (
+                    <QuestionCard key={q._id} question={q} session={session} />
+                  ))}
+                </div>
+              )}
+            />
+            <Pagination isNext={qData?.isNext || false} />
+          </TabsContent>
+
+          <TabsContent value="answers" className="mt-5 w-full">
+            <DataRenderer
+              success={aSuccess}
+              data={aData?.answers}
+              empty={EMPTY_ANSWERS}
+              render={(answers) => (
+                <div className="flex w-full flex-col gap-6">
+                  {answers.map((answer) => (
+                    <div
+                      key={answer._id}
+                      className="light-border border-b py-4"
+                    >
+                      <Link
+                        href={`/questions/${answer.question}`}
+                        className="body-semibold text-primary-500"
+                      >
+                        {answer.content?.substring(0, 200)}...
+                      </Link>
+                      <p className="small-regular text-dark400_light700 mt-1">
+                        {getTimeStamp(answer.createdAt)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            />
+            <Pagination isNext={aData?.isNext || false} />
+          </TabsContent>
+
+          <TabsContent value="tags" className="mt-5 w-full">
+            <DataRenderer
+              success={tSuccess}
+              data={tData}
+              empty={EMPTY_QUESTION}
+              render={(tags) => (
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag: Tag) => (
+                    <TagCard
+                      key={tag._id}
+                      _id={tag._id}
+                      name={tag.name}
+                      questions={tag.questions}
+                      compact
+                      showCount
+                    />
+                  ))}
+                </div>
+              )}
+            />
+          </TabsContent>
+        </Tabs>
+      </section>
     </div>
   );
 };
