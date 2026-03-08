@@ -121,19 +121,25 @@ const Votes = ({
   return (
     <div className="flex-center gap-2.5">
       <div className="flex-center gap-1.5">
-        <Image
-          src={
-            success && localHasUpvoted
-              ? "/icons/upvoted.svg"
-              : "/icons/upvote.svg"
-          }
-          width={18}
-          height={18}
-          alt="upvote"
-          className={`cursor-pointer ${isLoading && "opacity-50"}`}
-          aria-label="Upvote"
-          onClick={() => !isLoading && handleVote("upvote")}
-        />
+        <button
+          onClick={() => handleVote("upvote")}
+          disabled={isLoading}
+          aria-label={`Upvote. Current upvotes: ${formatNumber(localUpvotes)}`}
+          aria-pressed={success && localHasUpvoted}
+          className={`cursor-pointer bg-transparent border-none p-0 ${isLoading && "opacity-50"}`}
+        >
+          <Image
+            src={
+              success && localHasUpvoted
+                ? "/icons/upvoted.svg"
+                : "/icons/upvote.svg"
+            }
+            width={18}
+            height={18}
+            alt=""
+            aria-hidden="true"
+          />
+        </button>
 
         <div className="flex-center background-light700_dark400 min-w-5 rounded-sm p-1">
           <p className="subtle-medium text-dark400_light900">
@@ -143,19 +149,25 @@ const Votes = ({
       </div>
 
       <div className="flex-center gap-1.5">
-        <Image
-          src={
-            success && localHasDownvoted
-              ? "/icons/downvoted.svg"
-              : "/icons/downvote.svg"
-          }
-          width={18}
-          height={18}
-          alt="downvote"
-          className={`cursor-pointer ${isLoading && "opacity-50"}`}
-          aria-label="Downvote"
-          onClick={() => !isLoading && handleVote("downvote")}
-        />
+        <button
+          onClick={() => handleVote("downvote")}
+          disabled={isLoading}
+          aria-label={`Downvote. Current downvotes: ${formatNumber(localDownvotes)}`}
+          aria-pressed={success && localHasDownvoted}
+          className={`cursor-pointer bg-transparent border-none p-0 ${isLoading && "opacity-50"}`}
+        >
+          <Image
+            src={
+              success && localHasDownvoted
+                ? "/icons/downvoted.svg"
+                : "/icons/downvote.svg"
+            }
+            width={18}
+            height={18}
+            alt=""
+            aria-hidden="true"
+          />
+        </button>
 
         <div className="flex-center background-light700_dark400 min-w-5 rounded-sm p-1">
           <p className="subtle-medium text-dark400_light900">

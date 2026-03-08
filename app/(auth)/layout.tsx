@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import SocialAuthForm from "@/components/forms/SocialAuthForm";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "Sign In — DevFlow",
+};
 
 export default async function AuthLayout({
   children,
@@ -17,7 +22,7 @@ export default async function AuthLayout({
             </p>
           </div>
           <Image
-            src="images/site-logo.svg"
+            src="/images/site-logo.svg"
             alt="DevFlow Logo"
             width={50}
             height={50}

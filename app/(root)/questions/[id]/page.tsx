@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -16,6 +17,22 @@ import { auth } from "@/auth";
 import { hasVoted } from "@/lib/actions/vote.action";
 import DeleteButton from "@/components/DeleteButton";
 import Votes from "@/components/votes/Votes";
+
+export async function generateMetadata({
+  params,
+}: RouteParams): Promise<Metadata> {
+  const { id } = await params;
+  const { success, data: question } = await getQuestion({ questionId: id });
+
+  if (!success || !question) {
+    return { title: "Question — DevFlow" };
+  }
+
+  return {
+    title: `${question.title} — DevFlow`,
+    description: question.content?.slice(0, 155),
+  };
+}
 
 const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;

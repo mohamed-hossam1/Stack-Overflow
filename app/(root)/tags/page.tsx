@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import TagCard from "@/components/cards/TagCard";
 import DataRenderer from "@/components/DataRenderer";
 import LocalSearch from "@/components/search/LocalSearch";
@@ -6,6 +7,10 @@ import { getTags } from "@/lib/actions/tag.action";
 import CommonFilter from "@/components/filters/CommonFilter";
 import { TagFilters } from "@/constants/filters";
 import Pagination from "@/components/Pagination";
+
+export const metadata: Metadata = {
+  title: "Tags — DevFlow",
+};
 
 const Tags = async ({ searchParams }: RouteParams) => {
   const { page, pageSize, query, filter } = await searchParams;

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
 import LocalSearch from "@/components/search/LocalSearch";
@@ -6,6 +7,19 @@ import { getTagQuestions } from "@/lib/actions/tag.action";
 
 import React from "react";
 import Pagination from "@/components/Pagination";
+
+export async function generateMetadata({
+  params,
+}: RouteParams): Promise<Metadata> {
+  const { id } = await params;
+  const { success, data } = await getTagQuestions({ tagId: id });
+
+  if (!success || !data?.tag) {
+    return { title: "Tag — DevFlow" };
+  }
+
+  return { title: `${data.tag.name} — DevFlow` };
+}
 
 const Page = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;

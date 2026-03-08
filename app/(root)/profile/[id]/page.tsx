@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -16,6 +17,19 @@ import { getUserQuestions } from "@/lib/actions/question.action";
 import { getUserTopTags } from "@/lib/actions/tag.action";
 import { getUser } from "@/lib/actions/user.action";
 import { getTimeStamp } from "@/lib/utils";
+
+export async function generateMetadata({
+  params,
+}: RouteParams): Promise<Metadata> {
+  const { id } = await params;
+  const { success, data: user } = await getUser({ userId: id });
+
+  if (!success || !user) {
+    return { title: "Profile — DevFlow" };
+  }
+
+  return { title: `${user.name} — DevFlow` };
+}
 
 const ProfilePage = async ({ params, searchParams }: RouteParams) => {
   const { id } = await params;

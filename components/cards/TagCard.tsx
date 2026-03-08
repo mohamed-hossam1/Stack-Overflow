@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from "react";
 
 import ROUTES from "@/constants/routes";
-import { cn, getDeviconClassName, getTechDescription } from "@/lib/utils";
+import { cn, formatNumber, getDeviconClassName, getTechDescription } from "@/lib/utils";
 
 import { Badge } from "../ui/badge";
 
@@ -56,7 +56,7 @@ const TagCard = ({
       </Badge>
 
       {showCount && (
-        <p className="small-medium text-dark500_light700">{questions}</p>
+        <p className="small-medium text-dark500_light700">{formatNumber(questions!)}</p>
       )}
     </>
   );
@@ -89,7 +89,7 @@ const TagCard = ({
 
         <p className="small-medium text-dark400_light500 mt-3.5">
           <span className="body-semibold primary-text-gradient mr-2.5">
-            {questions}+
+            {formatNumber(questions!)}
           </span>
           Questions
         </p>
