@@ -4,8 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
-import Image from "next/image";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
@@ -18,7 +17,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createAnswer } from "@/lib/actions/answer.action";
-import { api } from "@/lib/api";
 import { AnswerSchema } from "@/lib/validations";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -30,19 +28,14 @@ const Editor = dynamic(() => import("@/components/editor"), {
 
 interface Props {
   questionId: string;
-  questionTitle: string;
-  questionContent: string;
   session: AppSession | null;
 }
 
 const AnswerForm = ({
   questionId,
-  questionTitle,
-  questionContent,
   session,
 }: Props) => {
   const [isAnswering, startAnsweringTransition] = useTransition();
-  const [isAISubmitting, setIsAISubmitting] = useState(false);
 
   const editorRef = useRef<MDXEditorMethods>(null);
   const router = useRouter();
@@ -80,90 +73,12 @@ const AnswerForm = ({
     });
   };
 
-  const sanitizeMarkdown = (markdown: string) =>
-    markdown
-      .replace(/<hr\s*\/?>/gi, "")
-      .replace(/^\s*([-*_])\s*(?:\1\s*){2,}\s*$/gm, "");
-
-  const generateAIAnswer = async () => {
-    if (!session) {
-      return toast("Please log in", {
-        description: "You need to be logged in to use this feature",
-      });
-    }
-
-    setIsAISubmitting(true);
-
-    const userAnswer = editorRef.current?.getMarkdown();
-
-    try {
-      const { success, data, error } = await api.ai.getAnswer(
-        questionTitle,
-        questionContent,
-        userAnswer,
-      );
-
-      if (!success) {
-        return toast("Error", {
-          description: error?.message,
-        });
-      }
-
-      const formattedAnswer = sanitizeMarkdown(
-        data.replace(/<br>/g, " ").toString().trim(),
-      );
-
-      if (editorRef.current) {
-        editorRef.current.setMarkdown(formattedAnswer);
-
-        form.setValue("content", formattedAnswer);
-        form.trigger("content");
-      }
-
-      toast("Success", {
-        description: "AI generated answer has been generated",
-      });
-    } catch (error) {
-      toast("Error", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "There was a problem with your request",
-      });
-    } finally {
-      setIsAISubmitting(false);
-    }
-  };
-
   return (
     <div>
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
         <h4 className="paragraph-semibold text-dark400_light800">
           Write your answer here
         </h4>
-        <Button
-          className="btn light-border-2 gap-1.5 rounded-md border px-4 py-2.5 text-primary-500 shadow-none dark:text-primary-500"
-          disabled={isAISubmitting}
-          onClick={generateAIAnswer}
-        >
-          {isAISubmitting ? (
-            <>
-              <ReloadIcon className="mr-2 size-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Image
-                src="/icons/stars.svg"
-                alt="Generate AI Answer"
-                width={12}
-                height={12}
-                className="object-contain"
-              />
-              Generate AI Answer
-            </>
-          )}
-        </Button>
       </div>
       <Form {...form}>
         <form

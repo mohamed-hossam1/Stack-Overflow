@@ -157,8 +157,6 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
       <section className="my-5">
         <AnswerForm
           questionId={question._id}
-          questionTitle={question.title}
-          questionContent={question.content}
           session={session}
         />
       </section>

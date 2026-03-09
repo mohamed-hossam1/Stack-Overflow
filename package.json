@@ -9,10 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.36",
     "@hookform/resolvers": "^5.2.2",
     "@mdxeditor/editor": "^3.52.4",
-    "ai": "^6.0.103",
     "bcryptjs": "^3.0.3",
     "bright": "^1.0.0",
     "class-variance-authority": "^0.7.1",
