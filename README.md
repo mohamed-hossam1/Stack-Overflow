@@ -3,7 +3,7 @@
 <div align="center">
   <img src="public/images/site-logo.svg" alt="DevFlow Logo" width="80" />
 
-  <h3>A full-stack Q&A platform for developers, built with Next.js 15</h3>
+  <h3>A full-stack Q&A platform for developers, built with Next.js 16</h3>
 
   <p>
     <a href="https://stack-overflow-dev-theta.vercel.app/" target="_blank">
@@ -81,7 +81,7 @@ app/
  
 | Category | Technology |
 |---|---|
-| Framework | Next.js 15.5 (App Router, Server Actions, `after()`) |
+| Framework | Next.js 16 (App Router, Server Actions, `after()`) |
 | UI Library | React 19.1 (RSC, `use()` hook for promise unwrapping) |
 | Language | TypeScript 5 (strict mode, ambient type declarations) |
 | Styling | Tailwind CSS v4, shadcn/ui (Radix UI primitives) |
@@ -202,6 +202,6 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 <div align="center">
-  <p>Built with ❤️ using Next.js 15 and deployed on Vercel</p>
+  <p>Built with ❤️ using Next.js 16 and deployed on Vercel</p>
   <a href="https://stack-overflow-dev-theta.vercel.app/">stack-overflow-dev-theta.vercel.app</a>
 </div>

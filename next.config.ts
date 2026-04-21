@@ -1,14 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pino", "pino-pretty"],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  cacheComponents: true,
   typescript: {
     ignoreBuildErrors: true,
   },
+  serverExternalPackages: ["pino", "pino-pretty"],
   images: {
+    qualities: [100, 75],
     remotePatterns: [
       {
         protocol: "https",
@@ -32,6 +31,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  
 };
 
 export default nextConfig;

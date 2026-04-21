@@ -1,6 +1,6 @@
-import { auth as middleware } from "@/auth";
+import { auth } from "@/auth";
 
-export { middleware };
+export const proxy = auth;
 
 export const config = {
   matcher: [
