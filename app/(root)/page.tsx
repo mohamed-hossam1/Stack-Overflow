@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 
 import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/routes";
 import { EMPTY_QUESTION } from "@/constants/states";
-import { getQuestions } from "@/lib/actions/question.action";
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { HomePageFilters } from "@/constants/filters";
 import Pagination from "@/components/Pagination";
+import SuspenseOnSearchParams from "@/components/SuspenseOnSearchParams";
+import { getCachedQuestions } from "@/lib/data/questions";
+import { CACHE_TAGS } from "@/lib/cache/tags";
 
 export const metadata: Metadata = {
   title: "Home — DevFlow",
@@ -20,18 +24,70 @@ interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>;
 }
 
-const Home = async ({ searchParams }: SearchParams) => {
+async function CachedQuestionsList({
+  page,
+  pageSize,
+  query,
+  filter,
+}: {
+  page: number;
+  pageSize: number;
+  query: string;
+  filter: string;
+}) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.questions);
+
+  const { questions, isNext } = await getCachedQuestions({ page, pageSize, query, filter });
+
+  return (
+    <>
+      <DataRenderer
+        success={true}
+        data={questions}
+        empty={EMPTY_QUESTION}
+        render={(questions) => (
+          <div className="mt-10 flex w-full flex-col gap-6">
+            {questions.map((question) => (
+              <QuestionCard key={question._id} question={question} />
+            ))}
+          </div>
+        )}
+      />
+      <Pagination isNext={isNext} />
+    </>
+  );
+}
+
+async function QuestionsListWrapper({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string }>;
+}) {
   const { page, pageSize, query, filter } = await searchParams;
+  return (
+    <CachedQuestionsList
+      page={Number(page) || 1}
+      pageSize={Number(pageSize) || 10}
+      query={query || ""}
+      filter={filter || ""}
+    />
+  );
+}
 
-  const { success, data, error } = await getQuestions({
-    page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
-    query: query || "",
-    filter: filter || "",
-  });
+const questionsListSkeleton = (
+  <div className="animate-pulse space-y-6 mt-10">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <div
+        key={i}
+        className="card-wrapper rounded-[10px] p-9 h-48 bg-light-800 dark:bg-dark-300"
+      />
+    ))}
+  </div>
+);
 
-  const { questions, isNext } = data || {};
-
+const Home = ({ searchParams }: SearchParams) => {
   return (
     <>
       <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
@@ -51,28 +107,15 @@ const Home = async ({ searchParams }: SearchParams) => {
           placeholder="Search questions..."
           otherClasses="flex-1"
         />
-       
       </section>
-       <HomeFilter
-          filters={HomePageFilters}
-          containerClasses="max-sm:hidden min-h-[40px] sm:min-w-[70px] mt-5"
-        />
-
-      <DataRenderer
-        success={success}
-        error={error}
-        data={questions}
-        empty={EMPTY_QUESTION}
-        render={(questions) => (
-          <div className="mt-10 flex w-full flex-col gap-6">
-            {questions.map((question) => (
-              <QuestionCard key={question._id} question={question} />
-            ))}
-          </div>
-        )}
+      <HomeFilter
+        filters={HomePageFilters}
+        containerClasses="max-sm:hidden min-h-[40px] sm:min-w-[70px] mt-5"
       />
 
-      <Pagination isNext={isNext || false} />
+      <SuspenseOnSearchParams fallback={questionsListSkeleton}>
+        <QuestionsListWrapper searchParams={searchParams} />
+      </SuspenseOnSearchParams>
     </>
   );
 };

@@ -30,7 +30,7 @@ export async function revalidateAnswersCache(
   ]);
 }
 
-export async function updateTagsCache(): Promise<void> {
+export async function revalidateTagsCache(): Promise<void> {
   updateTags([CACHE_TAGS.tags, CACHE_TAGS.topTags]);
 }
 

@@ -3,7 +3,7 @@ import React from "react";
 
 import { auth } from "@/auth";
 import QuestionForm from "@/components/forms/QuestionForm";
-import { getQuestion } from "@/lib/actions/question.action";
+import { getCachedQuestion } from "@/lib/data/questions";
 import ROUTES from "@/constants/routes";
 
 const EditQuestion = async ({ params }: RouteParams) => {
@@ -13,8 +13,12 @@ const EditQuestion = async ({ params }: RouteParams) => {
   const session = await auth();
   if (!session) return redirect("/sign-in");
 
-  const { data: question, success } = await getQuestion({ questionId: id });
-  if (!success) return notFound();
+  let question: Question;
+  try {
+    question = await getCachedQuestion(id);
+  } catch {
+    return notFound();
+  }
 
   if (question?.author.toString() !== session?.user?.id)
     redirect(ROUTES.QUESTION(id));

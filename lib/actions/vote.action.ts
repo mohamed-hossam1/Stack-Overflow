@@ -2,8 +2,6 @@
 
 import mongoose, { ClientSession } from "mongoose";
 
-import { revalidateTag } from "next/cache";
-
 import { Answer, Question, Vote } from "@/database";
 
 import action from "../handlers/action";
@@ -14,6 +12,7 @@ import {
   UpdateVoteCountSchema,
 } from "../validations";
 import { updateReputation } from "./reputation.action";
+import { revalidateHotQuestionsCache } from "@/lib/cache/revalidate";
 
 export async function updateVoteCount(
   params: UpdateVoteCountParams,
@@ -142,7 +141,7 @@ export async function createVote(
 
     await session.commitTransaction();
 
-    revalidateTag("hot-questions");
+    await revalidateHotQuestionsCache();
 
     const Model = targetType === "question" ? Question : Answer;
     const updatedDoc = await Model.findById(targetId);

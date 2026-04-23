@@ -1,108 +1,11 @@
 "use server";
 
-import { FilterQuery } from "mongoose";
-
 import { User } from "@/database";
 
 import action from "../handlers/action";
 import handleError from "../error";
-import { GetUserSchema, PaginatedSearchParamsSchema, ProfileSchema } from "../validations";
-
-export async function getUsers(
-  params: PaginatedSearchParams,
-): Promise<ActionResponse<{ users: User[]; isNext: boolean }>> {
-  const validationResult = await action({
-    params,
-    schema: PaginatedSearchParamsSchema,
-  });
-
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  const { page = 1, pageSize = 10, query, filter } = params;
-
-  const skip = (Number(page) - 1) * pageSize;
-  const limit = pageSize;
-
-  const filterQuery: FilterQuery<typeof User> = {};
-
-  if (query) {
-    filterQuery.$or = [
-      { name: { $regex: query, $options: "i" } },
-      { email: { $regex: query, $options: "i" } },
-    ];
-  }
-
-  let sortCriteria = {};
-
-  switch (filter) {
-    case "newest":
-      sortCriteria = { createdAt: -1 };
-      break;
-    case "oldest":
-      sortCriteria = { createdAt: 1 };
-      break;
-    case "popular":
-      sortCriteria = { reputation: -1 };
-      break;
-    default:
-      sortCriteria = { createdAt: -1 };
-      break;
-  }
-
-  try {
-    const totalUsers = await User.countDocuments(filterQuery);
-
-    const users = await User.find(filterQuery)
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const isNext = totalUsers > skip + users.length;
-
-    return {
-      success: true,
-      data: {
-        users: JSON.parse(JSON.stringify(users)),
-        isNext,
-      },
-    };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
-
-export async function getUser(
-  params: GetUserParams,
-): Promise<ActionResponse<User>> {
-  const validationResult = await action({
-    params,
-    schema: GetUserSchema,
-  });
-
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  const { userId } = validationResult.params!;
-
-  try {
-    const user = await User.findById(userId).lean();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    return {
-      success: true,
-      data: JSON.parse(JSON.stringify(user)),
-    };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
+import { ProfileSchema } from "../validations";
+import { revalidateUserCache } from "@/lib/cache/revalidate";
 
 export async function updateUser(
   params: UpdateUserParams
@@ -138,6 +41,8 @@ export async function updateUser(
     if (!updatedUser) {
       throw new Error("User not found");
     }
+
+    await revalidateUserCache(userId);
 
     return {
       success: true,

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import React, { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
+
 import AllAnswers from "@/components/answers/AllAnswers";
 import TagCard from "@/components/cards/TagCard";
 import { Preview } from "@/components/editor/Preview";
@@ -10,57 +12,38 @@ import AnswerForm from "@/components/forms/AnswerForm";
 import Metric from "@/components/Metric";
 import UserAvatar from "@/components/UserAvatar";
 import ROUTES from "@/constants/routes";
-import { getAnswers } from "@/lib/actions/answer.action";
-import { deleteQuestion, getQuestion, incrementViews } from "@/lib/actions/question.action";
+import { incrementViews, deleteQuestion } from "@/lib/actions/question.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 import { auth } from "@/auth";
 import { hasVoted } from "@/lib/actions/vote.action";
 import DeleteButton from "@/components/DeleteButton";
 import Votes from "@/components/votes/Votes";
+import { getCachedQuestion } from "@/lib/data/questions";
+import { getCachedAnswers } from "@/lib/data/answers";
+import { CACHE_TAGS } from "@/lib/cache/tags";
 
 export async function generateMetadata({
   params,
 }: RouteParams): Promise<Metadata> {
   const { id } = await params;
-  const { success, data: question } = await getQuestion({ questionId: id });
-
-  if (!success || !question) {
+  try {
+    const question = await getCachedQuestion(id);
+    return {
+      title: `${question.title} — DevFlow`,
+      description: question.content?.slice(0, 155),
+    };
+  } catch {
     return { title: "Question — DevFlow" };
   }
-
-  return {
-    title: `${question.title} — DevFlow`,
-    description: question.content?.slice(0, 155),
-  };
 }
 
-const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
-  const { id } = await params;
-  const { page, pageSize, filter } = await searchParams;
-  const { success, data: question } = await getQuestion({ questionId: id });
-  const session: AppSession | null = await auth() as AppSession | null;
+async function CachedQuestionView({ id }: { id: string }) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CACHE_TAGS.questions);
+  cacheTag(CACHE_TAGS.question(id));
 
-  after(async () => {
-    await incrementViews({ questionId: id });
-  });
-
-  if (!success || !question) return redirect("/404");
-
-  const {
-    success: areAnswersLoaded,
-    data: answersResult,
-    error: answersError,
-  } = await getAnswers({
-    questionId: id,
-    page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
-    filter,
-  });
-  const hasVotedPromise = hasVoted({
-    targetId: question._id,
-    targetType: "question",
-  });
-
+  const question = await getCachedQuestion(id);
   const { author, createdAt, answers, views, tags, content, title } = question;
 
   return (
@@ -79,26 +62,6 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
                 {author.name}
               </p>
             </Link>
-          </div>
-
-          <div className="flex items-center justify-end gap-2">
-            {session?.user?.id === author._id && (
-              <DeleteButton
-                itemId={question._id}
-                deleteAction={deleteQuestion}
-              />
-            )}
-
-            <Suspense fallback={<div>Loading...</div>}>
-              <Votes
-                targetType="question"
-                upvotes={question.upvotes}
-                downvotes={question.downvotes}
-                targetId={question._id}
-                hasVotedPromise={hasVotedPromise}
-                session={session}
-              />
-            </Suspense>
           </div>
         </div>
 
@@ -143,24 +106,113 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
           />
         ))}
       </div>
+    </>
+  );
+}
+
+async function CachedAnswersList({
+  questionId,
+  page,
+  pageSize,
+  filter,
+}: {
+  questionId: string;
+  page: number;
+  pageSize: number;
+  filter?: string;
+}) {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CACHE_TAGS.answers);
+  cacheTag(CACHE_TAGS.questionAnswers(questionId));
+
+  const { answers, isNext, totalAnswers } = await getCachedAnswers({
+    questionId,
+    page,
+    pageSize,
+    filter,
+  });
+
+  return (
+    <AllAnswers
+      data={answers}
+      success={true}
+      totalAnswers={totalAnswers}
+      isNext={isNext}
+    />
+  );
+}
+
+async function QuestionDetailContent({
+  params,
+  searchParams,
+}: RouteParams) {
+  const { id } = await params;
+  const { page, pageSize, filter } = await searchParams;
+  const session: AppSession | null = (await auth()) as AppSession | null;
+
+  after(async () => {
+    await incrementViews({ questionId: id });
+  });
+
+  let question: Question;
+  try {
+    question = await getCachedQuestion(id);
+  } catch {
+    return redirect("/404");
+  }
+
+  const hasVotedPromise = hasVoted({
+    targetId: question._id,
+    targetType: "question",
+  });
+
+  const isOwner = session?.user?.id === question.author._id;
+
+  return (
+    <>
+      <div className="flex items-center justify-end gap-2 mb-2">
+        {isOwner && (
+          <DeleteButton
+            itemId={question._id}
+            deleteAction={deleteQuestion}
+          />
+        )}
+
+        <Suspense fallback={<div>Loading...</div>}>
+          <Votes
+            targetType="question"
+            upvotes={question.upvotes}
+            downvotes={question.downvotes}
+            targetId={question._id}
+            hasVotedPromise={hasVotedPromise}
+            session={session}
+          />
+        </Suspense>
+      </div>
+
+      <Suspense fallback={<div className="animate-pulse h-96 bg-light-800 dark:bg-dark-300 rounded-[10px]" />}>
+        <CachedQuestionView id={id} />
+      </Suspense>
 
       <section className="my-5">
-        <AllAnswers
-          data={answersResult?.answers}
-          success={areAnswersLoaded}
-          error={answersError}
-          totalAnswers={answersResult?.totalAnswers || 0}
-          isNext={answersResult?.isNext}
-        />
+        <Suspense fallback={<div className="animate-pulse space-y-4 mt-4">{[1,2,3].map(i => <div key={i} className="h-32 bg-light-800 dark:bg-dark-300 rounded-[10px]" />)}</div>}>
+          <CachedAnswersList questionId={id} page={Number(page) || 1} pageSize={Number(pageSize) || 10} filter={filter} />
+        </Suspense>
       </section>
 
       <section className="my-5">
-        <AnswerForm
-          questionId={question._id}
-          session={session}
-        />
+        <AnswerForm questionId={question._id} session={session} />
       </section>
     </>
+  );
+}
+
+const QuestionDetails = ({ params, searchParams }: RouteParams) => {
+  return (
+    <Suspense fallback={<div className="animate-pulse space-y-6">{[1,2,3].map(i => <div key={i} className="h-48 bg-light-800 dark:bg-dark-300 rounded-[10px]" />)}</div>}>
+      <QuestionDetailContent params={params} searchParams={searchParams} />
+    </Suspense>
   );
 };
 

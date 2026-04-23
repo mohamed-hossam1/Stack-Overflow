@@ -1,6 +1,6 @@
 "use server";
 
-import mongoose, { Error, FilterQuery } from "mongoose";
+import mongoose, { Error } from "mongoose";
 
 import Answer from "@/database/answer.model";
 import Collection from "@/database/collection.model";
@@ -9,7 +9,7 @@ import TagQuestion from "@/database/tag-question.model";
 import Tag, { ITagDoc } from "@/database/tag.model";
 import Vote from "@/database/vote.model";
 
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidateQuestionsCache, revalidateQuestionCache, revalidateTagsCache } from "@/lib/cache/revalidate";
 
 import action from "../handlers/action";
 import handleError from "../error";
@@ -17,12 +17,8 @@ import {
   AskQuestionSchema,
   DeleteQuestionSchema,
   EditQuestionSchema,
-  GetQuestionSchema,
-  GetUserQuestionsSchema,
   IncrementViewsSchema,
-  PaginatedSearchParamsSchema,
 } from "../validations";
-import dbConnect from "../mongoose";
 
 export async function createQuestion(
   params: CreateQuestionParams
@@ -80,8 +76,8 @@ export async function createQuestion(
 
     await session.commitTransaction();
 
-    revalidateTag("hot-questions");
-    revalidateTag("top-tags");
+    await revalidateQuestionsCache();
+    await revalidateTagsCache();
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
@@ -190,125 +186,15 @@ export async function editQuestion(
     await question.save({ session });
     await session.commitTransaction();
 
+    await revalidateQuestionCache(questionId);
+    await revalidateTagsCache();
+
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
     await session.abortTransaction();
     return handleError(error) as ErrorResponse;
   } finally {
     await session.endSession();
-  }
-}
-
-export async function getQuestion(
-  params: GetQuestionParams
-): Promise<ActionResponse<Question>> {
-  const validationResult = await action({
-    params,
-    schema: GetQuestionSchema,
-  });
-
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  const { questionId } = validationResult.params!;
-
-  try {
-    const question = await Question.findById(questionId)
-      .populate("tags")
-      .populate("author", "_id name image")
-      .lean();
-
-    if (!question) {
-      throw new Error("Question not found");
-    }
-
-    return { success: true, data: JSON.parse(JSON.stringify(question)) };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
-
-
-export async function getQuestions(
-  params: PaginatedSearchParams
-): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
-  const validationResult = await action({
-    params,
-    schema: PaginatedSearchParamsSchema,
-  });
-
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  const { page = 1, pageSize = 10, query, filter } = params;
-  const skip = (Number(page) - 1) * pageSize;
-  const limit = Number(pageSize);
-
-  const filterQuery: FilterQuery<typeof Question> = {};
-
-  if (filter === "recommended") {
-    return { success: true, data: { questions: [], isNext: false } };
-  }
-
-  if (query) {
-    filterQuery.$text = { $search: query };
-  }
-
-  let sortCriteria = {};
-
-  switch (filter) {
-    case "newest":
-      sortCriteria = { createdAt: -1 };
-      break;
-    case "unanswered":
-      filterQuery.answers = 0;
-      sortCriteria = { createdAt: -1 };
-      break;
-    case "popular":
-      sortCriteria = { upvotes: -1 };
-      break;
-    default:
-      sortCriteria = { createdAt: -1 };
-      break;
-  }
-
-  try {
-    let totalQuestions = await Question.countDocuments(filterQuery);
-
-    let questions = await Question.find(filterQuery)
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .lean()
-      .sort(sortCriteria)
-      .skip(skip)
-      .limit(limit);
-
-    if (query && questions.length === 0) {
-      delete filterQuery.$text;
-      filterQuery.$or = [
-        { title: { $regex: new RegExp(query, "i") } },
-        { content: { $regex: new RegExp(query, "i") } },
-      ];
-      totalQuestions = await Question.countDocuments(filterQuery);
-      questions = await Question.find(filterQuery)
-        .populate("tags", "name")
-        .populate("author", "name image")
-        .lean()
-        .sort(sortCriteria)
-        .skip(skip)
-        .limit(limit);
-    }
-
-    const isNext = totalQuestions > skip + questions.length;
-
-    return {
-      success: true,
-      data: { questions: JSON.parse(JSON.stringify(questions)), isNext },
-    };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
   }
 }
 
@@ -340,47 +226,6 @@ export async function incrementViews(
     return {
       success: true,
       data: { views: question.views },
-    };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
-  }
-}
-
-export async function getUserQuestions(
-  params: GetUserQuestionsParams
-): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
-  const validationResult = await action({
-    params,
-    schema: GetUserQuestionsSchema,
-  });
-
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
-  }
-
-  const { userId, page = 1, pageSize = 10 } = validationResult.params!;
-  const skip = (Number(page) - 1) * pageSize;
-  const limit = Number(pageSize);
-
-  try {
-    const totalQuestions = await Question.countDocuments({ author: userId });
-
-    const questions = await Question.find({ author: userId })
-      .populate("tags", "name")
-      .populate("author", "name image")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const isNext = totalQuestions > skip + questions.length;
-
-    return {
-      success: true,
-      data: {
-        questions: JSON.parse(JSON.stringify(questions)),
-        isNext,
-      },
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;
@@ -438,35 +283,14 @@ export async function deleteQuestion(
 
     await session.commitTransaction();
 
+    await revalidateQuestionCache(questionId);
+    await revalidateTagsCache();
+
     return { success: true };
   } catch (error) {
     await session.abortTransaction();
     return handleError(error) as ErrorResponse;
   } finally {
     session.endSession();
-  }
-}
-
-const getHotQuestionsCached = unstable_cache(
-  async () => {
-    await dbConnect();
-
-    const questions = await Question.find()
-      .sort({ views: -1, upvotes: -1 })
-      .limit(5)
-      .lean();
-
-    return JSON.parse(JSON.stringify(questions));
-  },
-  ["hot-questions"],
-  { revalidate: 300, tags: ["hot-questions"] }
-);
-
-export async function getHotQuestions(): Promise<ActionResponse<Question[]>> {
-  try {
-    const data = await getHotQuestionsCached();
-    return { success: true, data };
-  } catch (error) {
-    return handleError(error) as ErrorResponse;
   }
 }

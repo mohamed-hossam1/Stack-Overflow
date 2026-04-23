@@ -3,7 +3,7 @@ import React from "react";
 
 import { auth } from "@/auth";
 import ProfileForm from "@/components/forms/ProfileForm";
-import { getUser } from "@/lib/actions/user.action";
+import { getCachedUser } from "@/lib/data/users";
 
 const EditProfilePage = async ({ params }: RouteParams) => {
   const { id } = await params;
@@ -13,9 +13,12 @@ const EditProfilePage = async ({ params }: RouteParams) => {
 
   if (session.user?.id !== id) return redirect(`/profile/${id}`);
 
-  const { success, data: user } = await getUser({ userId: id });
-
-  if (!success || !user) return redirect("/404");
+  let user: User;
+  try {
+    user = await getCachedUser(id);
+  } catch {
+    return redirect("/404");
+  }
 
   return (
     <div className="flex-start w-full flex-col">

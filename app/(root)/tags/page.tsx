@@ -1,29 +1,84 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
+
 import TagCard from "@/components/cards/TagCard";
 import DataRenderer from "@/components/DataRenderer";
 import LocalSearch from "@/components/search/LocalSearch";
 import { EMPTY_TAGS } from "@/constants/states";
-import { getTags } from "@/lib/actions/tag.action";
 import CommonFilter from "@/components/filters/CommonFilter";
 import { TagFilters } from "@/constants/filters";
 import Pagination from "@/components/Pagination";
+import SuspenseOnSearchParams from "@/components/SuspenseOnSearchParams";
+import { getCachedTags } from "@/lib/data/tags";
+import { CACHE_TAGS } from "@/lib/cache/tags";
 
 export const metadata: Metadata = {
   title: "Tags — DevFlow",
 };
 
-const Tags = async ({ searchParams }: RouteParams) => {
+async function CachedTagsList({
+  page,
+  pageSize,
+  query,
+  filter,
+}: {
+  page: number;
+  pageSize: number;
+  query?: string;
+  filter?: string;
+}) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CACHE_TAGS.tags);
+
+  const { tags, isNext } = await getCachedTags({ page, pageSize, query, filter });
+
+  return (
+    <>
+      <DataRenderer
+        success={true}
+        data={tags}
+        empty={EMPTY_TAGS}
+        render={(tags) => (
+          <div className="mt-10 flex w-full flex-wrap gap-4">
+            {tags.map((tag) => (
+              <TagCard key={tag._id} {...tag} />
+            ))}
+          </div>
+        )}
+      />
+      <Pagination isNext={isNext} />
+    </>
+  );
+}
+
+async function TagsListWrapper({ searchParams }: RouteParams) {
   const { page, pageSize, query, filter } = await searchParams;
+  return (
+    <CachedTagsList
+      page={Number(page) || 1}
+      pageSize={Number(pageSize) || 10}
+      query={query}
+      filter={filter}
+    />
+  );
+}
 
-  const { success, data, error } = await getTags({
-    page: Number(page) || 1,
-    pageSize: Number(pageSize) || 10,
-    query,
-    filter,
-  });
+const tagsGridSkeleton = (
+  <div className="animate-pulse mt-10">
+    <div className="flex flex-wrap gap-4">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="card-wrapper rounded-[10px] p-9 h-36 w-[260px] bg-light-800 dark:bg-dark-300"
+        />
+      ))}
+    </div>
+  </div>
+);
 
-  const { tags, isNext } = data || {};
-
+const Tags = ({ searchParams }: RouteParams) => {
   return (
     <>
       <h1 className="h1-bold text-dark100_light900 text-3xl">Tags</h1>
@@ -40,21 +95,9 @@ const Tags = async ({ searchParams }: RouteParams) => {
         otherClasses="min-h-[40px] sm:min-w-[70px] mt-5"
       />
 
-      <DataRenderer
-        success={success}
-        error={error}
-        data={tags}
-        empty={EMPTY_TAGS}
-        render={(tags) => (
-          <div className="mt-10 flex w-full flex-wrap gap-4">
-            {tags.map((tag) => (
-              <TagCard key={tag._id} {...tag} />
-            ))}
-          </div>
-        )}
-      />
-
-      <Pagination isNext={isNext || false} />
+      <SuspenseOnSearchParams fallback={tagsGridSkeleton}>
+        <TagsListWrapper searchParams={searchParams} />
+      </SuspenseOnSearchParams>
     </>
   );
 };
