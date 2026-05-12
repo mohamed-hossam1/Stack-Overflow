@@ -3,7 +3,7 @@
 <div align="center">
   <img src="public/images/site-logo.svg" alt="DevFlow Logo" width="80" />
 
-  <h3>A full-stack Q&A platform for developers, built with Next.js 16</h3>
+  <h3>A full-stack Q&A platform for developers, built with Next.js 15</h3>
 
   <p>
     <a href="https://stack-overflow-dev-theta.vercel.app/" target="_blank">
@@ -23,67 +23,79 @@
 
 ---
 
-## 🌐 Live Demo
+## Live Demo
 
 👉 [https://stack-overflow-dev-theta.vercel.app/](https://stack-overflow-dev-theta.vercel.app/)
 
 ---
 
-## 📋 Table of Contents
+## Features
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Project Structure](#project-structure)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
-- [License](#license)
 
----
+- **React Server Components (RSC)** throughout — minimal client JavaScript bundle, with selective client islands for interactive features
+- **Optimistic UI** on the voting system — state updates instantly with server reconciliation and automatic rollback on failure
+- **Multi-document MongoDB transactions** using Mongoose sessions across every mutation (question creation, voting, answer posting, deletion) ensuring data consistency
+- **Parallel data fetching** with `Promise.all` in server components to eliminate sequential waterfall requests
+- **Non-blocking view tracking** via Next.js `after()` API — increments are deferred post-response, never blocking render
+- **Full dark mode** implemented at the CSS variable level with `next-themes`, including a custom CodeMirror dark extension for the Markdown editor
 
-## 🧠 Overview
-
-**DevFlow** is a modern, full-stack developer Q&A community platform inspired by Stack Overflow. Ask questions, share answers, upvote helpful content, and explore a rich ecosystem of tags and topics — all within a clean, responsive interface with full dark mode support.
-
-The app features AI-powered answer generation via the Groq API, OAuth authentication with GitHub and Google, a rich Markdown editor, and a real-time voting system.
 
 ---
 
-## ✨ Features
-
-- **Authentication** — Sign up/in with email & password, GitHub, or Google OAuth (powered by Auth.js v5)
-- **Ask & Answer Questions** — Rich Markdown editor with syntax highlighting, code blocks, tables, and more
-- **AI Answer Generation** — Generate AI-powered answers using the Groq LLaMA model
-- **Voting System** — Upvote and downvote questions and answers
-- **Tags & Discovery** — Tag-based filtering, top tags sidebar, and hot questions widget
-- **Community Page** — Browse all registered users
-- **Search & Filter** — Local search with debouncing and URL-synced filter controls
-- **Dark Mode** — Full light/dark theme toggle with `next-themes`
-- **View Tracking** — Automatic question view increments
-- **Responsive Design** — Mobile-first layout with a hamburger navigation drawer
-- **Pagination** — Paginated listings for questions, answers, tags, and users
-
+ 
+## Architecture
+ 
+### Request Lifecycle
+ 
+```
+Browser → Next.js Middleware (Auth.js session check)
+       → RSC Page (async, server-fetches data in parallel)
+       → Server Action (Zod validation → Mongoose transaction → revalidateTag)
+       → Client Component (optimistic update → server sync → rollback on failure)
+```
+ 
+### App Router Structure
+ 
+```
+app/
+├── (auth)/                    # Isolated auth layout group
+│   ├── sign-in/               # Credentials + OAuth
+│   └── sign-up/               # Full validation with bcrypt
+├── (root)/                    # Main app with Navbar/Sidebars
+│   ├── page.tsx               # Server-rendered, paginated question feed
+│   ├── questions/[id]/        # Dynamic question detail + answers
+│   │   └── edit/              # Author-only edit (server-side auth check)
+│   ├── profile/[id]/          # User profile with tabbed content
+│   │   └── edit/              # Owner-only edit with ProfileForm
+│   ├── tags/[id]/             # Tag-filtered question lists
+│   ├── community/             # Paginated user directory
+│   └── collection/            # Authenticated saved questions
+└── api/
+    ├── auth/signin-with-oauth # OAuth transaction handler
+    ├── users/ + accounts/     # RESTful CRUD with auth guards
+    └── ai/answers/            # Groq LLaMA 3.1 integration
+```
+ 
 ---
-
-## 🛠 Tech Stack
-
+## Tech Stack
+ 
 | Category | Technology |
 |---|---|
-| Framework | [Next.js 16](https://nextjs.org/) (App Router, Server Actions) |
-| Language | [TypeScript](https://www.typescriptlang.org/) |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com/), shadcn/ui |
-| Database | [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/) |
-| Auth | [Auth.js v5](https://authjs.dev/) (Credentials, GitHub, Google) |
-| Editor | [@mdxeditor/editor](https://mdxeditor.dev/) |
-| Markdown | [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote), [Bright](https://github.com/code-hike/bright) |
-| AI | [Groq API](https://groq.com/) (LLaMA 3.1) |
-| Validation | [Zod](https://zod.dev/) |
-| Forms | [React Hook Form](https://react-hook-form.com/) |
-| Notifications | [Sonner](https://sonner.emilkowal.ski/) |
-| Deployment | [Vercel](https://vercel.com/) |
-
+| Framework | Next.js 15.5 (App Router, Server Actions, `after()`) |
+| UI Library | React 19.1 (RSC, `use()` hook for promise unwrapping) |
+| Language | TypeScript 5 (strict mode, ambient type declarations) |
+| Styling | Tailwind CSS v4, shadcn/ui (Radix UI primitives) |
+| Database | MongoDB + Mongoose 9 (transactions, lean queries, indexes) |
+| Auth | Auth.js v5 (Credentials, GitHub, Google OAuth) |
+| Validation | Zod (server + client, shared schemas) |
+| Forms | React Hook Form 7 |
+| Editor | MDXEditor (rich Markdown with CodeMirror syntax highlighting) |
+| Markdown | next-mdx-remote + Bright (server-side syntax highlighting) |
+| AI | Groq API — LLaMA 3.1 8B |
+| Caching | Next.js `unstable_cache` with tag-based revalidation |
+| Notifications | Sonner (toast system) |
+| Deployment | Vercel (Edge Network, automatic preview deployments) |
+ 
 ---
 
 ## 🚀 Getting Started
@@ -190,6 +202,6 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 <div align="center">
-  <p>Built with ❤️ using Next.js 16 and deployed on Vercel</p>
+  <p>Built with ❤️ using Next.js 15 and deployed on Vercel</p>
   <a href="https://stack-overflow-dev-theta.vercel.app/">stack-overflow-dev-theta.vercel.app</a>
 </div>
