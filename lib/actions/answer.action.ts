@@ -19,8 +19,8 @@ export async function createAnswer(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { content, questionId } = validationResult.params!;
@@ -75,8 +75,8 @@ export async function deleteAnswer(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { answerId } = validationResult.params!;

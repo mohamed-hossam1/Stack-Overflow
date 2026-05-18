@@ -9,9 +9,10 @@ import Pagination from "../Pagination";
 interface Props extends ActionResponse<Answer[]> {
   totalAnswers: number;
   isNext?: boolean;
+  userId?: string;
 }
 
-const AllAnswers = ({ data, success, error, totalAnswers, isNext }: Props) => {
+const AllAnswers = ({ data, success, error, totalAnswers, isNext, userId }: Props) => {
   return (
     <div className="mt-11">
       <div className="flex items-center justify-between">
@@ -31,7 +32,7 @@ const AllAnswers = ({ data, success, error, totalAnswers, isNext }: Props) => {
         success={success}
         empty={EMPTY_ANSWERS}
         render={(answers) =>
-          answers.map((answer) => <AnswerCard key={answer._id} {...answer} />)
+          answers.map((answer) => <AnswerCard key={answer._id} {...answer} userId={userId} />)
         }
       />
 

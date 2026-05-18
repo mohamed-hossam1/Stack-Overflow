@@ -130,9 +130,9 @@ interface JobFilterParams {
 interface UpdateUserParams {
   name: string;
   username: string;
-  bio: string;
-  location: string;
-  portfolio: string;
+  bio?: string;
+  location?: string;
+  portfolio?: string;
 }
 
 interface GlobalSearchParams {

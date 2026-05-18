@@ -41,7 +41,7 @@ async function CachedTagsList({
         data={tags}
         empty={EMPTY_TAGS}
         render={(tags) => (
-          <div className="mt-10 flex w-full flex-wrap gap-4">
+          <div className="mt-10 flex w-full flex-wrap gap-4 min-h-[445px]">
             {tags.map((tag) => (
               <TagCard key={tag._id} {...tag} />
             ))}
@@ -53,7 +53,11 @@ async function CachedTagsList({
   );
 }
 
-async function TagsListWrapper({ searchParams }: RouteParams) {
+async function TagsListWrapper({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
   const { page, pageSize, query, filter } = await searchParams;
   return (
     <CachedTagsList
@@ -78,7 +82,7 @@ const tagsGridSkeleton = (
   </div>
 );
 
-const Tags = ({ searchParams }: RouteParams) => {
+const Tags = ({ searchParams }: { searchParams: Promise<Record<string, string>> }) => {
   return (
     <>
       <h1 className="h1-bold text-dark100_light900 text-3xl">Tags</h1>

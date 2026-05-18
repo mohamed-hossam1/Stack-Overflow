@@ -57,7 +57,7 @@ export const AskQuestionSchema = z.object({
       message: "Title must be at least 5 characters.",
     })
     .max(130, { message: "Title musn't be longer then 130 characters." }),
-  content: z.string().min(100, { message: "Minimum of 100 characters." }),
+  content: z.string().min(10, { message: "Minimum of 10 characters." }),
   tags: z
     .array(
       z
@@ -139,7 +139,7 @@ export const IncrementViewsSchema = z.object({
 });
 
 export const AnswerSchema = z.object({
-  content: z.string().min(100, { message: "Minimum of 100 characters." }),
+  content: z.string().min(10, { message: "Minimum of 10 characters." }),
 });
 
 export const AnswerServerSchema = AnswerSchema.extend({
@@ -227,11 +227,9 @@ export const ProfileSchema = z.object({
   username: z
     .string()
     .min(3, { message: "username musn't be longer then 100 characters." }),
-  portfolio: z.string().url({ message: "Please provide valid URL" }),
-  location: z.string().min(3, { message: "Please provide proper location" }),
-  bio: z.string().min(3, {
-    message: "Bio must be at least 3 characters.",
-  }),
+  portfolio: z.string().optional(),
+  location: z.string().optional(),
+  bio: z.string().optional(),
 });
 
 export const UpdateUserSchema = z.object({

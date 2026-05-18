@@ -1,6 +1,6 @@
 "use server";
 
-import mongoose, { Error } from "mongoose";
+import mongoose from "mongoose";
 
 import Answer from "@/database/answer.model";
 import Collection from "@/database/collection.model";
@@ -29,8 +29,8 @@ export async function createQuestion(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { title, content, tags } = validationResult.params!;
@@ -97,8 +97,8 @@ export async function editQuestion(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { title, content, tags, questionId } = validationResult.params!;
@@ -206,8 +206,8 @@ export async function incrementViews(
     schema: IncrementViewsSchema,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { questionId } = validationResult.params!;
@@ -241,8 +241,8 @@ export async function deleteQuestion(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { questionId } = validationResult.params!;

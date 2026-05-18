@@ -16,8 +16,8 @@ export async function updateUser(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { name, username, bio, location, portfolio } = validationResult.params!;

@@ -448,6 +448,9 @@ code {
 [data-lexical-editor="true"] {
   height: 350px !important;
   overflow-y: auto !important;
+  overflow-wrap: break-word !important;
+  word-break: break-all !important;
+  white-space: pre-wrap !important;
 }
 
 /* NESTED CODE BLOCKS: Only apply grid to visible code blocks */

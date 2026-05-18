@@ -39,7 +39,7 @@ async function CachedProfileHeader({ userId }: { userId: string }) {
   cacheTag(CACHE_TAGS.user(userId));
 
   const user = await getCachedUser(userId);
-  const { _id, name, username, image, bio, location, portfolio, reputation, createdAt } = user;
+  const { _id, name, username, image, bio, location, portfolio, createdAt } = user;
 
   return (
     <div className="flex items-center justify-start gap-4">
@@ -78,13 +78,6 @@ async function CachedProfileHeader({ userId }: { userId: string }) {
 
         <div className="mt-2 flex items-center gap-4">
           <Metric
-            imgUrl="/icons/star.svg"
-            alt="Reputation"
-            value={reputation ?? 0}
-            title="reputation"
-            textStyles="small-regular text-dark400_light700"
-          />
-          <Metric
             imgUrl="/icons/clock.svg"
             alt="Joined"
             value={`Joined ${getTimeStamp(new Date(createdAt))}`}
@@ -121,7 +114,7 @@ async function CachedProfileTabs({
   return (
     <section className="mt-10 w-full">
       <Tabs defaultValue="questions">
-        <TabsList className="background-light800_dark400 min-h-[42px] p-1">
+        <TabsList className=" min-h-[42px] p-1 flex flex-row justify-start items-center gap-1">
           <TabsTrigger value="questions" className="tab">Questions</TabsTrigger>
           <TabsTrigger value="answers" className="tab">Answers</TabsTrigger>
           <TabsTrigger value="tags" className="tab">Top Tags</TabsTrigger>
@@ -133,7 +126,7 @@ async function CachedProfileTabs({
             data={qData.questions}
             empty={EMPTY_QUESTION}
             render={(questions) => (
-              <div className="flex w-full flex-col gap-6">
+              <div className="flex w-full flex-col gap-6 min-h-[435px]">
                 {questions.map((q) => (
                   <QuestionCard key={q._id} question={q} />
                 ))}

@@ -23,8 +23,8 @@ export async function updateVoteCount(
     schema: UpdateVoteCountSchema,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { targetId, targetType, voteType, change } = validationResult.params!;
@@ -59,8 +59,8 @@ export async function createVote(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { targetId, targetType, voteType } = validationResult.params!;
@@ -172,8 +172,8 @@ export async function hasVoted(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { targetId, targetType } = validationResult.params!;

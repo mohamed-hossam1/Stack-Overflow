@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -65,7 +66,7 @@ async function CachedQuestionView({ id }: { id: string }) {
           </div>
         </div>
 
-        <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full">
+        <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full break-all">
           {title}
         </h2>
       </div>
@@ -110,22 +111,19 @@ async function CachedQuestionView({ id }: { id: string }) {
   );
 }
 
-async function CachedAnswersList({
+async function AnswersList({
   questionId,
   page,
   pageSize,
   filter,
+  userId,
 }: {
   questionId: string;
   page: number;
   pageSize: number;
   filter?: string;
+  userId?: string;
 }) {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag(CACHE_TAGS.answers);
-  cacheTag(CACHE_TAGS.questionAnswers(questionId));
-
   const { answers, isNext, totalAnswers } = await getCachedAnswers({
     questionId,
     page,
@@ -139,6 +137,7 @@ async function CachedAnswersList({
       success={true}
       totalAnswers={totalAnswers}
       isNext={isNext}
+      userId={userId}
     />
   );
 }
@@ -173,10 +172,20 @@ async function QuestionDetailContent({
     <>
       <div className="flex items-center justify-end gap-2 mb-2">
         {isOwner && (
-          <DeleteButton
-            itemId={question._id}
-            deleteAction={deleteQuestion}
-          />
+          <>
+            <Link
+              href={ROUTES.EDIT_QUESTION(question._id)}
+              className="flex items-center gap-1 text-sm text-primary-500 hover:text-primary-600"
+            >
+              <Image src="/icons/edit.svg" alt="edit" width={14} height={14} />
+              Edit
+            </Link>
+            <DeleteButton
+              itemId={question._id}
+              deleteAction={deleteQuestion}
+              redirectUrl={ROUTES.HOME}
+            />
+          </>
         )}
 
         <Suspense fallback={<div>Loading...</div>}>
@@ -197,7 +206,7 @@ async function QuestionDetailContent({
 
       <section className="my-5">
         <Suspense fallback={<div className="animate-pulse space-y-4 mt-4">{[1,2,3].map(i => <div key={i} className="h-32 bg-light-800 dark:bg-dark-300 rounded-[10px]" />)}</div>}>
-          <CachedAnswersList questionId={id} page={Number(page) || 1} pageSize={Number(pageSize) || 10} filter={filter} />
+          <AnswersList questionId={id} page={Number(page) || 1} pageSize={Number(pageSize) || 10} filter={filter} userId={session?.user?.id} />
         </Suspense>
       </section>
 

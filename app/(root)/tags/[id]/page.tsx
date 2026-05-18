@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 
+import { auth } from "@/auth";
 import QuestionCard from "@/components/cards/QuestionCard";
 import DataRenderer from "@/components/DataRenderer";
 import LocalSearch from "@/components/search/LocalSearch";
@@ -28,11 +29,13 @@ async function CachedTagQuestions({
   page,
   pageSize,
   query,
+  session,
 }: {
   tagId: string;
   page: number;
   pageSize: number;
   query?: string;
+  session: AppSession | null;
 }) {
   "use cache";
   cacheLife("minutes");
@@ -44,7 +47,7 @@ async function CachedTagQuestions({
   return (
     <>
       <section className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="h1-bold text-dark100_light900">{tag?.name}</h1>
+        <h1 className="h1-bold text-dark100_light900 mt-5">{tag?.name}</h1>
       </section>
 
       <DataRenderer
@@ -52,9 +55,9 @@ async function CachedTagQuestions({
         data={questions}
         empty={EMPTY_QUESTION}
         render={(questions) => (
-          <div className="mt-10 flex w-full flex-col gap-6">
+          <div className="mt-10 flex w-full flex-col gap-6 min-h-[480px] ">
             {questions.map((question) => (
-              <QuestionCard key={question._id} question={question} />
+              <QuestionCard key={question._id} question={question} session={session} />
             ))}
           </div>
         )}
@@ -67,12 +70,14 @@ async function CachedTagQuestions({
 async function TagQuestionsWrapper({ params, searchParams }: RouteParams) {
   const { id } = await params;
   const { page, pageSize, query } = await searchParams;
+  const session = (await auth()) as AppSession | null;
   return (
     <CachedTagQuestions
       tagId={id}
       page={Number(page) || 1}
       pageSize={Number(pageSize) || 10}
       query={query}
+      session={session}
     />
   );
 }

@@ -21,13 +21,13 @@ const MobileNavigation = async () => {
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
+      <SheetTrigger className="sm:hidden">
         <Image
           src="/icons/hamburger.svg"
           width={36}
           height={36}
           alt="Menu"
-          className="invert-colors  sm:hidden"
+          className="invert-colors"
         />
       </SheetTrigger>
       <SheetContent
@@ -49,47 +49,43 @@ const MobileNavigation = async () => {
         </Link>
 
         <div className="no-scrollbar flex h-[calc(100vh-80px)] flex-col justify-between overflow-y-auto -mt-4">
-          <SheetClose asChild >
-            <section className="flex h-full flex-col gap-6 pt-16">
-              <NavLinks isMobileNav />
-            </section>
-          </SheetClose>
+          <section className="flex h-full flex-col gap-6 pt-16">
+            <NavLinks isMobileNav />
+          </section>
 
           <div className="flex flex-col gap-3">
             {session ? (
-              <SheetClose asChild>
-                <form
-                  action={async () => {
-                    "use server";
+              <form
+                action={async () => {
+                  "use server";
 
-                    await signOut();
-                  }}
+                  await signOut();
+                }}
+              >
+                <Button
+                  type="submit"
+                  className="base-medium  bg-transparent! px-4 py-5 border border-gray-700 w-full"
                 >
-                  <Button
-                    type="submit"
-                    className="base-medium  bg-transparent! px-4 py-5 border border-gray-700 w-full"
-                  >
-                    <LogOut className="size-5 text-black dark:text-white" />
-                    <span className="text-dark300_light900">Logout</span>
-                  </Button>
-                </form>
-              </SheetClose>
+                  <LogOut className="size-5 text-black dark:text-white" />
+                  <span className="text-dark300_light900">Logout</span>
+                </Button>
+              </form>
             ) : (
               <>
                 <SheetClose asChild>
-                  <Link href={ROUTES.SIGN_IN}>
-                    <Button className="small-medium btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none">
+                  <Button asChild className="small-medium btn-secondary min-h-10.25 w-full rounded-lg px-4 py-3 shadow-none">
+                    <Link href={ROUTES.SIGN_IN}>
                       <span className="primary-text-gradient">Log In</span>
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </SheetClose>
 
                 <SheetClose asChild>
-                  <Link href={ROUTES.SIGN_UP}>
-                    <Button className="small-medium light-border-2 btn-tertiary text-dark400_light900 min-h-10.25 w-full rounded-lg border px-4 py-3 shadow-none">
+                  <Button asChild className="small-medium light-border-2 btn-tertiary text-dark400_light900 min-h-10.25 w-full rounded-lg border px-4 py-3 shadow-none">
+                    <Link href={ROUTES.SIGN_UP}>
                       Sign Up
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </SheetClose>
               </>
             )}

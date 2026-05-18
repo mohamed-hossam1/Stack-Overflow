@@ -10,7 +10,6 @@ import { Preview } from "../editor/Preview";
 import UserAvatar from "../UserAvatar";
 import Votes from "../votes/Votes";
 import DeleteButton from "../DeleteButton";
-import { auth } from "@/auth";
 
 const AnswerCard = async ({
   _id,
@@ -19,12 +18,16 @@ const AnswerCard = async ({
   createdAt,
   upvotes,
   downvotes,
-}: Answer) => {
+  userId,
+}: Answer & { userId?: string }) => {
   const hasVotedPromise = hasVoted({
     targetId: _id,
     targetType: "answer",
   });
-  const session: AppSession | null = await auth() as AppSession | null;
+
+  const session: AppSession | null = userId
+    ? ({ user: { id: userId } } as AppSession)
+    : null;
 
   return (
     <article className="light-border border-b py-10">

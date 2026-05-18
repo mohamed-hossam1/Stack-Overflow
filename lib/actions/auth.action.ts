@@ -17,8 +17,8 @@ export async function signUpWithCredentials(
 ): Promise<ActionResponse> {
   const validationResult = await action({ params, schema: SignUpSchema });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { name, username, email, password } = validationResult.params!;
@@ -77,8 +77,8 @@ export async function signInWithCredentials(
 ): Promise<ActionResponse> {
   const validationResult = await action({ params, schema: SignInSchema });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { email, password } = validationResult.params!;

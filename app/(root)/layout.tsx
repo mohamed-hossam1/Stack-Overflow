@@ -16,8 +16,8 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
           <LeftSidebar />
         </Suspense>
 
-        <section className="flex min-h-screen flex-1 flex-col px-6 pb-6 pt-36 max-md:pb-14 sm:px-14">
-          <div className="mx-auto w-full ">{children}</div>
+        <section className="flex min-h-screen flex-1 min-w-0 flex-col px-6 pb-6 pt-36 max-md:pb-14 sm:px-14">
+          <div className="mx-auto w-full">{children}</div>
         </section>
 
         <Suspense fallback={null}>

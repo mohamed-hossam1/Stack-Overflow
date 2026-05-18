@@ -14,21 +14,35 @@ type ActionOptions<T> = {
   authorize?: boolean;
 };
 
-async function action<T>({
-  params,
-  schema,
-  authorize = false,
-}: ActionOptions<T>) {
+type ActionSuccess<T> = {
+  success: true;
+  params: T | undefined;
+  session: Session | null;
+};
+
+type ActionFailure = {
+  success: false;
+  error: Error;
+};
+
+export type ActionResult<T> = ActionSuccess<T> | ActionFailure;
+
+async function action<T>(
+  { params, schema, authorize = false }: ActionOptions<T>
+): Promise<ActionResult<T>> {
   if (schema) {
     try {
       params = schema.parse(params);
     } catch (error) {
       if (error instanceof ZodError) {
-        return new ValidationError(
-          error.flatten().fieldErrors as Record<string, string[]>
-        );
+        return {
+          success: false,
+          error: new ValidationError(
+            error.flatten().fieldErrors as Record<string, string[]>
+          ),
+        };
       } else {
-        return new Error("Schema validation failed");
+        return { success: false, error: new Error("Schema validation failed") };
       }
     }
   }
@@ -39,13 +53,13 @@ async function action<T>({
     session = await auth();
 
     if (!session) {
-      return new UnauthorizedError();
+      return { success: false, error: new UnauthorizedError() };
     }
   }
 
   await dbConnect();
 
-  return { params, session };
+  return { success: true, params, session };
 }
 
 export default action;

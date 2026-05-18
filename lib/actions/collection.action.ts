@@ -17,8 +17,8 @@ export async function toggleCollection(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { questionId } = validationResult.params!;
@@ -65,7 +65,7 @@ export async function getCollectionStatus(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
+  if (!validationResult.success) {
     return { success: true, data: { saved: false } };
   }
 
@@ -95,8 +95,8 @@ export async function getUserCollections(
     authorize: true,
   });
 
-  if (validationResult instanceof Error) {
-    return handleError(validationResult) as ErrorResponse;
+  if (!validationResult.success) {
+    return handleError(validationResult.error) as ErrorResponse;
   }
 
   const { page = 1, pageSize = 10, query } = params;

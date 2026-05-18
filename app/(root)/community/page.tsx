@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 
 import UserCard from "@/components/cards/UserCard";
@@ -41,7 +40,7 @@ async function CachedUsersList({
         data={users}
         empty={EMPTY_USERS}
         render={(users) => (
-          <div className="mt-12 flex flex-wrap gap-5">
+          <div className="mt-12 flex flex-wrap gap-5 min-h-[438px]">
             {users.map((user) => (
               <UserCard key={user._id} {...user} />
             ))}
@@ -53,7 +52,11 @@ async function CachedUsersList({
   );
 }
 
-async function UsersListWrapper({ searchParams }: RouteParams) {
+async function UsersListWrapper({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
   const { page, pageSize, query, filter } = await searchParams;
   return (
     <CachedUsersList
@@ -78,7 +81,7 @@ const usersGridSkeleton = (
   </div>
 );
 
-const Community = ({ searchParams }: RouteParams) => {
+const Community = ({ searchParams }: { searchParams: Promise<Record<string, string>> }) => {
   return (
     <div>
       <h1 className="h1-bold text-dark100_light900">All Users</h1>

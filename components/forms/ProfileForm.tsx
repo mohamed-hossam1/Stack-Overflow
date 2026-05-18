@@ -112,7 +112,7 @@ const ProfileForm = ({ user }: ProfileFormProps) => {
                   Bio
                 </FormLabel>
                 <FormControl>
-                  <Textarea
+                  <Input
                     {...field}
                     className="paragraph-regular background-light700_dark300 light-border-2 text-dark300_light700 no-focus min-h-[56px] border"
                   />
