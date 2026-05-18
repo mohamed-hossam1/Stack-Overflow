@@ -29,13 +29,13 @@ async function CachedQuestionsList({
   pageSize,
   query,
   filter,
-  session,
+  userId,
 }: {
   page: number;
   pageSize: number;
   query: string;
   filter: string;
-  session: AppSession | null;
+  userId: string | null;
 }) {
   "use cache";
   cacheLife("minutes");
@@ -52,7 +52,7 @@ async function CachedQuestionsList({
         render={(questions) => (
           <div className="mt-10 flex w-full flex-col gap-6 min-h-[440px]">
             {questions.map((question) => (
-              <QuestionCard key={question._id} question={question} session={session} />
+              <QuestionCard key={question._id} question={question} userId={userId} />
             ))}
           </div>
         )}
@@ -75,7 +75,7 @@ async function QuestionsListWrapper({
       pageSize={Number(pageSize) || 10}
       query={query || ""}
       filter={filter || ""}
-      session={session}
+      userId={session?.user?.id ?? null}
     />
   );
 }

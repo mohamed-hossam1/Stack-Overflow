@@ -41,7 +41,7 @@ async function CollectionList({
         render={(questions) => (
           <div className="mt-10 flex w-full flex-col gap-6 min-h-[447px]">
             {questions.map((question) => (
-              <QuestionCard key={question._id} question={question} session={session} saved />
+              <QuestionCard key={question._id} question={question} userId={session?.user?.id} saved />
             ))}
           </div>
         )}

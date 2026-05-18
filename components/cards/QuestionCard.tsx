@@ -14,13 +14,13 @@ import DeleteButton from "../DeleteButton";
 interface Props {
   question: Question;
   saved?: boolean;
-  session?: AppSession | null;
+  userId?: string | null;
 }
 
 const QuestionCard = ({
   question: { _id, title, tags, author, createdAt, upvotes, answers, views },
   saved,
-  session,
+  userId,
 }: Props) => {
   return (
     <div className="card-wrapper rounded-[10px] p-9 sm:px-11">
@@ -38,14 +38,14 @@ const QuestionCard = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {session?.user && (
+          {userId && (
             <BookmarkButton
               questionId={_id}
               saved={saved ?? false}
               toggleAction={toggleCollection}
             />
           )}
-          {session?.user?.id === author._id && (
+          {userId === author._id && (
             <DeleteButton itemId={_id} deleteAction={deleteQuestion} />
           )}
         </div>

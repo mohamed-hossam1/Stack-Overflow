@@ -29,13 +29,13 @@ async function CachedTagQuestions({
   page,
   pageSize,
   query,
-  session,
+  userId,
 }: {
   tagId: string;
   page: number;
   pageSize: number;
   query?: string;
-  session: AppSession | null;
+  userId: string | null;
 }) {
   "use cache";
   cacheLife("minutes");
@@ -57,7 +57,7 @@ async function CachedTagQuestions({
         render={(questions) => (
           <div className="mt-10 flex w-full flex-col gap-6 min-h-[480px] ">
             {questions.map((question) => (
-              <QuestionCard key={question._id} question={question} session={session} />
+              <QuestionCard key={question._id} question={question} userId={userId} />
             ))}
           </div>
         )}
@@ -77,7 +77,7 @@ async function TagQuestionsWrapper({ params, searchParams }: RouteParams) {
       page={Number(page) || 1}
       pageSize={Number(pageSize) || 10}
       query={query}
-      session={session}
+      userId={session?.user?.id ?? null}
     />
   );
 }
